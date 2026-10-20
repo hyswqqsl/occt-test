@@ -1,5 +1,0 @@
-# Source files for TKTopTest
-set(OCCT_TKTopTest_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKTopTest_FILES
-)

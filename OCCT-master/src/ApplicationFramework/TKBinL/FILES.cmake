@@ -1,5 +1,0 @@
-# Source files for TKBinL
-set(OCCT_TKBinL_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKBinL_FILES
-)

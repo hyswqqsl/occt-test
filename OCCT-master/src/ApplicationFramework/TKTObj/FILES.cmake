@@ -1,5 +1,0 @@
-# Source files for TKTObj
-set(OCCT_TKTObj_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKTObj_FILES
-)

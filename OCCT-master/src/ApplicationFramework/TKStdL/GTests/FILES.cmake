@@ -1,5 +1,0 @@
-# Test source files for TKStdL
-set(OCCT_TKStdL_GTests_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKStdL_GTests_FILES
-)

@@ -1,5 +1,0 @@
-# Source files for TKD3DHost
-set(OCCT_TKD3DHost_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKD3DHost_FILES
-)

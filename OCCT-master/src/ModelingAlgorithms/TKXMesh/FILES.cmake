@@ -1,5 +1,0 @@
-# Source files for TKXMesh
-set(OCCT_TKXMesh_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKXMesh_FILES
-)

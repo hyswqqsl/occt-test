@@ -1,6 +1,0 @@
-# Source files for TKXSBase
-set(OCCT_TKXSBase_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-set(OCCT_TKXSBase_FILES
-  TKXSBase_pch.hxx
-)

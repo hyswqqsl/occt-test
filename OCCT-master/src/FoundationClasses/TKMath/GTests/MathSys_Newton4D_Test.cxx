@@ -1,0 +1,340 @@
+// Copyright (c) 2025 OPEN CASCADE SAS
+//
+// This file is part of Open CASCADE Technology software library.
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 2.1 as published
+// by the Free Software Foundation, with special exception defined in the file
+// OCCT_LGPL_EXCEPTION.txt. Consult the file LICENSE_LGPL_21.txt included in OCCT
+// distribution for complete text of the license and disclaimer of any warranty.
+//
+// Alternatively, this file may be used under the terms of Open CASCADE
+// commercial license or contractual agreement.
+
+#include <gtest/gtest.h>
+
+#include <MathSys_Newton4D.hxx>
+
+#include <array>
+
+class MathSys_Newton4DTest : public testing::Test
+{
+protected:
+  static constexpr double THE_TOL = 1.0e-10;
+};
+
+TEST_F(MathSys_Newton4DTest, Solve4D_LinearSystem)
+{
+  auto aFunc =
+    [](double theX1, double theX2, double theX3, double theX4, double theF[4], double theJ[4][4])
+    -> bool {
+    theF[0] = theX1 - 1.0;
+    theF[1] = theX2 - 2.0;
+    theF[2] = theX3 - 3.0;
+    theF[3] = theX4 - 4.0;
+
+    theJ[0][0] = 1.0;
+    theJ[0][1] = 0.0;
+    theJ[0][2] = 0.0;
+    theJ[0][3] = 0.0;
+
+    theJ[1][0] = 0.0;
+    theJ[1][1] = 1.0;
+    theJ[1][2] = 0.0;
+    theJ[1][3] = 0.0;
+
+    theJ[2][0] = 0.0;
+    theJ[2][1] = 0.0;
+    theJ[2][2] = 1.0;
+    theJ[2][3] = 0.0;
+
+    theJ[3][0] = 0.0;
+    theJ[3][1] = 0.0;
+    theJ[3][2] = 0.0;
+    theJ[3][3] = 1.0;
+    return true;
+  };
+
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.HasBounds = false;
+
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance = THE_TOL;
+
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::Solve4D(aFunc, {0.0, 0.0, 0.0, 0.0}, aBounds, aOptions);
+
+  ASSERT_TRUE(aResult.IsDone());
+  EXPECT_NEAR(aResult.X[0], 1.0, 1.0e-12);
+  EXPECT_NEAR(aResult.X[1], 2.0, 1.0e-12);
+  EXPECT_NEAR(aResult.X[2], 3.0, 1.0e-12);
+  EXPECT_NEAR(aResult.X[3], 4.0, 1.0e-12);
+}
+
+TEST_F(MathSys_Newton4DTest, Solve4D_Bounded)
+{
+  auto aFunc =
+    [](double theX1, double theX2, double theX3, double theX4, double theF[4], double theJ[4][4])
+    -> bool {
+    theF[0] = theX1 - 1.0;
+    theF[1] = theX2 - 2.0;
+    theF[2] = theX3 - 3.0;
+    theF[3] = theX4 - 4.0;
+
+    for (size_t r = 0; r < 4; ++r)
+    {
+      for (size_t c = 0; c < 4; ++c)
+      {
+        theJ[r][c] = (r == c) ? 1.0 : 0.0;
+      }
+    }
+    return true;
+  };
+
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.Min = {-10.0, -10.0, -10.0, -10.0};
+  aBounds.Max = {10.0, 10.0, 10.0, 10.0};
+
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance = THE_TOL;
+
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::Solve4D(aFunc, {9.0, 8.0, 7.0, 6.0}, aBounds, aOptions);
+
+  ASSERT_TRUE(aResult.IsDone());
+  EXPECT_NEAR(aResult.X[0], 1.0, 1.0e-12);
+  EXPECT_NEAR(aResult.X[1], 2.0, 1.0e-12);
+  EXPECT_NEAR(aResult.X[2], 3.0, 1.0e-12);
+  EXPECT_NEAR(aResult.X[3], 4.0, 1.0e-12);
+}
+
+TEST_F(MathSys_Newton4DTest, Solve4D_SmallStepAtRoot_ReturnsOK)
+{
+  auto aFunc =
+    [](double theX1, double theX2, double theX3, double theX4, double theF[4], double theJ[4][4])
+    -> bool {
+    theF[0] = theX1 - 1.0;
+    theF[1] = theX2 - 2.0;
+    theF[2] = theX3 - 3.0;
+    theF[3] = theX4 - 4.0;
+
+    for (size_t r = 0; r < 4; ++r)
+    {
+      for (size_t c = 0; c < 4; ++c)
+      {
+        theJ[r][c] = (r == c) ? 1.0 : 0.0;
+      }
+    }
+    return true;
+  };
+
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.HasBounds = false;
+
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance    = 1.0e-12;
+  aOptions.XTolerance    = 100.0;
+  aOptions.MaxIterations = 5;
+  aOptions.MaxStepRatio  = 100.0;
+
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::Solve4D(aFunc, {0.0, 0.0, 0.0, 0.0}, aBounds, aOptions);
+  EXPECT_TRUE(aResult.IsDone());
+  EXPECT_EQ(aResult.Status, MathUtils::Status::OK);
+  EXPECT_NEAR(aResult.X[0], 1.0, 1.0e-14);
+  EXPECT_NEAR(aResult.X[1], 2.0, 1.0e-14);
+  EXPECT_NEAR(aResult.X[2], 3.0, 1.0e-14);
+  EXPECT_NEAR(aResult.X[3], 4.0, 1.0e-14);
+}
+
+TEST_F(MathSys_Newton4DTest, Solve4D_TinyStepLargeResidual_ReturnsMaxIterations)
+{
+  auto aFunc = [](double /*theX1*/,
+                  double /*theX2*/,
+                  double /*theX3*/,
+                  double /*theX4*/,
+                  double theF[4],
+                  double theJ[4][4]) -> bool {
+    theF[0] = 1.0;
+    theF[1] = 1.0;
+    theF[2] = 1.0;
+    theF[3] = 1.0;
+
+    for (size_t r = 0; r < 4; ++r)
+    {
+      for (size_t c = 0; c < 4; ++c)
+      {
+        theJ[r][c] = (r == c) ? 1.0e20 : 0.0;
+      }
+    }
+    return true;
+  };
+
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.HasBounds = false;
+
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance       = 1.0e-8;
+  aOptions.XTolerance       = 1.0e-16;
+  aOptions.MaxIterations    = 10;
+  aOptions.EnableLineSearch = false;
+
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::Solve4D(aFunc, {0.0, 0.0, 0.0, 0.0}, aBounds, aOptions);
+  EXPECT_FALSE(aResult.IsDone());
+  EXPECT_EQ(aResult.Status, MathUtils::Status::MaxIterations);
+  EXPECT_GT(aResult.ResidualNorm, 1.0e-2);
+}
+
+TEST_F(MathSys_Newton4DTest, Solve4D_InvalidInput)
+{
+  auto aFunc = [](double /*theX1*/,
+                  double /*theX2*/,
+                  double /*theX3*/,
+                  double /*theX4*/,
+                  double theF[4],
+                  double theJ[4][4]) -> bool {
+    for (size_t i = 0; i < 4; ++i)
+    {
+      theF[i] = 0.0;
+      for (size_t j = 0; j < 4; ++j)
+      {
+        theJ[i][j] = (i == j) ? 1.0 : 0.0;
+      }
+    }
+    return true;
+  };
+
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.Min = {1.0, 0.0, 0.0, 0.0};
+  aBounds.Max = {0.0, 1.0, 1.0, 1.0};
+
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance = THE_TOL;
+
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::Solve4D(aFunc, {0.0, 0.0, 0.0, 0.0}, aBounds, aOptions);
+
+  EXPECT_EQ(aResult.Status, MathUtils::Status::InvalidInput);
+  EXPECT_FALSE(aResult.IsDone());
+}
+
+namespace
+{
+class PlaneSurfaceEval
+{
+public:
+  PlaneSurfaceEval(double theZOffset, double theCurvature)
+      : myZOffset(theZOffset),
+        myCurvature(theCurvature)
+  {
+  }
+
+  void D2(double  theU,
+          double  theV,
+          gp_Pnt& theP,
+          gp_Vec& theD1U,
+          gp_Vec& theD1V,
+          gp_Vec& theD2UU,
+          gp_Vec& theD2VV,
+          gp_Vec& theD2UV) const
+  {
+    theP.SetCoord(theU, theV, myZOffset + myCurvature * (theU * theU + theV * theV));
+    theD1U.SetCoord(1.0, 0.0, 2.0 * myCurvature * theU);
+    theD1V.SetCoord(0.0, 1.0, 2.0 * myCurvature * theV);
+    theD2UU.SetCoord(0.0, 0.0, 2.0 * myCurvature);
+    theD2VV.SetCoord(0.0, 0.0, 2.0 * myCurvature);
+    theD2UV.SetCoord(0.0, 0.0, 0.0);
+  }
+
+private:
+  double myZOffset;
+  double myCurvature;
+};
+} // namespace
+
+TEST_F(MathSys_Newton4DTest, SolveSurfaceSurfaceExtrema4D_Smoke)
+{
+  PlaneSurfaceEval aSurf1(0.0, 1.0);
+  PlaneSurfaceEval aSurf2(2.0, -1.0);
+
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.Min = {-10.0, -10.0, -10.0, -10.0};
+  aBounds.Max = {10.0, 10.0, 10.0, 10.0};
+
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance = THE_TOL;
+
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::SolveSurfaceSurfaceExtrema4D(aSurf1,
+                                          aSurf2,
+                                          std::array<double, 4>{0.1, -0.1, -0.1, 0.1},
+                                          aBounds,
+                                          aOptions);
+
+  EXPECT_TRUE(aResult.IsDone());
+  EXPECT_GT(aResult.NbIterations, 0u);
+  for (double aParameter : aResult.X)
+  {
+    EXPECT_NEAR(aParameter, 0.0, 1.0e-8);
+  }
+  EXPECT_NEAR(aResult.ResidualNorm, 0.0, 1.0e-12);
+}
+
+TEST_F(MathSys_Newton4DTest, Solve4D_ScaleRelativeJacobian)
+{
+  const auto aFunc =
+    [](double theX1, double theX2, double theX3, double theX4, double theF[4], double theJ[4][4]) {
+      constexpr double THE_SCALE = 1.0e150;
+      const double     aX[4]     = {theX1, theX2, theX3, theX4};
+      for (size_t aRow = 0; aRow < 4; ++aRow)
+      {
+        theF[aRow] = THE_SCALE * (aX[aRow] - static_cast<double>(aRow + 1));
+        for (size_t aCol = 0; aCol < 4; ++aCol)
+        {
+          theJ[aRow][aCol] = (aRow == aCol) ? THE_SCALE : 0.0;
+        }
+      }
+      return true;
+    };
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.HasBounds = false;
+  MathSys::NewtonOptions aOptions;
+  aOptions.FTolerance   = 1.0e-12;
+  aOptions.MaxStepRatio = 10.0;
+  const MathSys::NewtonResultN<4> aResult =
+    MathSys::Solve4D(aFunc, {0.0, 0.0, 0.0, 0.0}, aBounds, aOptions);
+  ASSERT_TRUE(aResult.IsDone());
+  for (size_t anIndex = 0; anIndex < 4; ++anIndex)
+  {
+    EXPECT_NEAR(aResult.X[anIndex], static_cast<double>(anIndex + 1), 1.0e-12);
+  }
+}
+
+TEST_F(MathSys_Newton4DTest, HeterogeneousUnboundedSystemTakesFullNewtonStep)
+{
+  const auto aFunc =
+    [](double theX0, double theX1, double theX2, double theX3, double theF[4], double theJ[4][4]) {
+      const double aX[4]      = {theX0, theX1, theX2, theX3};
+      const double aTarget[4] = {100.0, -200.0, 300.0, -400.0};
+      const double aScale[4]  = {1.0e20, 1.0, 1.0, 1.0};
+      for (size_t aRow = 0; aRow < 4; ++aRow)
+      {
+        theF[aRow] = aScale[aRow] * (aX[aRow] - aTarget[aRow]);
+        for (size_t aCol = 0; aCol < 4; ++aCol)
+        {
+          theJ[aRow][aCol] = aRow == aCol ? aScale[aRow] : 0.0;
+        }
+      }
+      return true;
+    };
+  MathSys::NewtonBoundsN<4> aBounds;
+  aBounds.HasBounds = false;
+
+  const MathSys::NewtonResultN<4> aResult = MathSys::Solve4D(aFunc, {0.0, 0.0, 0.0, 0.0}, aBounds);
+  ASSERT_TRUE(aResult.IsDone());
+  EXPECT_DOUBLE_EQ(aResult.X[0], 100.0);
+  EXPECT_DOUBLE_EQ(aResult.X[1], -200.0);
+  EXPECT_DOUBLE_EQ(aResult.X[2], 300.0);
+  EXPECT_DOUBLE_EQ(aResult.X[3], -400.0);
+}

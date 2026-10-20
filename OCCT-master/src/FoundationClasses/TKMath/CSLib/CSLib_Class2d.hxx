@@ -1,0 +1,216 @@
+// Created on: 1995-03-08
+// Created by: Laurent BUCHARD
+// Copyright (c) 1995-1999 Matra Datavision
+// Copyright (c) 1999-2014 OPEN CASCADE SAS
+//
+// This file is part of Open CASCADE Technology software library.
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 2.1 as published
+// by the Free Software Foundation, with special exception defined in the file
+// OCCT_LGPL_EXCEPTION.txt. Consult the file LICENSE_LGPL_21.txt included in OCCT
+// distribution for complete text of the license and disclaimer of any warranty.
+//
+// Alternatively, this file may be used under the terms of Open CASCADE
+// commercial license or contractual agreement.
+
+#ifndef _CSLib_Class2d_HeaderFile
+#define _CSLib_Class2d_HeaderFile
+
+#include <Standard.hxx>
+#include <Standard_DefineAlloc.hxx>
+#include <gp_Pnt2d.hxx>
+#include <NCollection_Array1.hxx>
+#include <NCollection_Sequence.hxx>
+#include <NCollection_DynamicArray.hxx>
+
+#include <atomic>
+
+class gp_Pnt2d;
+
+//! Low-level algorithm for 2D point-in-polygon classification.
+//!
+//! This class determines whether a 2D point lies inside, outside, or on the boundary
+//! of a closed polygon. It uses a ray-casting algorithm where a horizontal ray
+//! from the test point is extended to infinity, and the number of polygon edge
+//! crossings determines the classification.
+//!
+//! The polygon is internally normalized to [0,1] x [0,1] domain for numerical stability.
+//!
+//! @note This class was moved from package BRepTopAdaptor.
+class CSLib_Class2d
+{
+public:
+  //! Classification result for point-in-polygon tests.
+  enum Result
+  {
+    Result_Inside    = 1,  //!< Point is strictly inside the polygon
+    Result_Outside   = -1, //!< Point is strictly outside the polygon
+    Result_Uncertain = 0   //!< Point is on boundary or classification is uncertain
+  };
+
+  DEFINE_STANDARD_ALLOC
+
+  //! Default constructor. Creates an empty classifier.
+  CSLib_Class2d() = default;
+
+  //! Constructs a 2D classifier from an array of polygon vertices.
+  //!
+  //! The polygon is automatically closed (no need to repeat the first point at the end).
+  //! Points are normalized internally to the UV bounds for numerical stability.
+  //!
+  //! @param[in] thePnts2d Array of polygon vertices (minimum 3 points required)
+  //! @param[in] theTolU   Tolerance in U direction for boundary detection
+  //! @param[in] theTolV   Tolerance in V direction for boundary detection
+  //! @param[in] theUMin   Minimum U bound of the polygon domain
+  //! @param[in] theVMin   Minimum V bound of the polygon domain
+  //! @param[in] theUMax   Maximum U bound of the polygon domain
+  //! @param[in] theVMax   Maximum V bound of the polygon domain
+  Standard_EXPORT CSLib_Class2d(const NCollection_Array1<gp_Pnt2d>& thePnts2d,
+                                double                              theTolU,
+                                double                              theTolV,
+                                double                              theUMin,
+                                double                              theVMin,
+                                double                              theUMax,
+                                double                              theVMax);
+
+  //! Constructs a 2D classifier from a sequence of polygon vertices.
+  //!
+  //! Same as the array constructor but accepts a sequence for convenience.
+  //!
+  //! @param[in] thePnts2d Sequence of polygon vertices (minimum 3 points required)
+  //! @param[in] theTolU   Tolerance in U direction for boundary detection
+  //! @param[in] theTolV   Tolerance in V direction for boundary detection
+  //! @param[in] theUMin   Minimum U bound of the polygon domain
+  //! @param[in] theVMin   Minimum V bound of the polygon domain
+  //! @param[in] theUMax   Maximum U bound of the polygon domain
+  //! @param[in] theVMax   Maximum V bound of the polygon domain
+  Standard_EXPORT CSLib_Class2d(const NCollection_Sequence<gp_Pnt2d>& thePnts2d,
+                                double                                theTolU,
+                                double                                theTolV,
+                                double                                theUMin,
+                                double                                theVMin,
+                                double                                theUMax,
+                                double                                theVMax);
+
+  //! Constructs a 2D classifier from a vector of polygon vertices.
+  //!
+  //! Same as the array constructor but accepts a vector for convenience.
+  //!
+  //! @param[in] thePnts2d Vector of polygon vertices (minimum 3 points required)
+  //! @param[in] theTolU   Tolerance in U direction for boundary detection
+  //! @param[in] theTolV   Tolerance in V direction for boundary detection
+  //! @param[in] theUMin   Minimum U bound of the polygon domain
+  //! @param[in] theVMin   Minimum V bound of the polygon domain
+  //! @param[in] theUMax   Maximum U bound of the polygon domain
+  //! @param[in] theVMax   Maximum V bound of the polygon domain
+  Standard_EXPORT CSLib_Class2d(const NCollection_DynamicArray<gp_Pnt2d>& thePnts2d,
+                                double                                    theTolU,
+                                double                                    theTolV,
+                                double                                    theUMin,
+                                double                                    theVMin,
+                                double                                    theUMax,
+                                double                                    theVMax);
+
+  //! Deep-copy constructor. The immutable polygon and a completed grid cache are copied.
+  Standard_EXPORT CSLib_Class2d(const CSLib_Class2d& theOther);
+
+  //! Deep-copy assignment. A grid under construction is intentionally not copied.
+  Standard_EXPORT CSLib_Class2d& operator=(const CSLib_Class2d& theOther);
+
+  //! Move constructor.
+  Standard_EXPORT CSLib_Class2d(CSLib_Class2d&& theOther) noexcept;
+
+  //! Move assignment operator.
+  Standard_EXPORT CSLib_Class2d& operator=(CSLib_Class2d&& theOther) noexcept;
+
+  //! Classifies a point relative to the polygon.
+  //!
+  //! @param[in] thePoint The 2D point to classify
+  //! @return Classification result
+  Standard_EXPORT Result SiDans(const gp_Pnt2d& thePoint) const;
+
+  //! Classifies a point with explicit ON tolerance.
+  //!
+  //! Similar to SiDans() but uses the specified tolerance for boundary detection
+  //! instead of the tolerances specified at construction.
+  //!
+  //! @param[in] thePoint The 2D point to classify
+  //! @param[in] theTol   Tolerance for boundary detection
+  //! @return Classification result
+  Standard_EXPORT Result SiDans_OnMode(const gp_Pnt2d& thePoint, double theTol) const;
+
+private:
+  //! Internal classification in normalized coordinates.
+  //!
+  //! Performs point-in-polygon test using ray-casting algorithm.
+  //! The point coordinates should be in the normalized [0,1] domain.
+  //!
+  //! @param[in] theX X coordinate in normalized space
+  //! @param[in] theY Y coordinate in normalized space
+  //! @return true if inside, false if outside
+  bool internalSiDans(double theX, double theY) const;
+
+  //! Internal classification with ON detection.
+  //!
+  //! Same as internalSiDans() but also detects if the point lies on the boundary.
+  //!
+  //! @param[in] theX    X coordinate in normalized space
+  //! @param[in] theY    Y coordinate in normalized space
+  //! @param[in] theTolU U tolerance in normalized space
+  //! @param[in] theTolV V tolerance in normalized space
+  //! @return Classification result
+  Result internalSiDansOuOn(double theX, double theY, double theTolU, double theTolV) const;
+
+  //! Initializes the classifier with polygon data.
+  //! @tparam TCol_Containers2d Container type (Array1 or Sequence)
+  template <class TCol_Containers2d>
+  void init(const TCol_Containers2d& thePnts2d,
+            double                   theTolU,
+            double                   theTolV,
+            double                   theUMin,
+            double                   theVMin,
+            double                   theUMax,
+            double                   theVMax);
+
+  //! Builds the grid cache for fast point classification on first sustained use.
+  //! Cells whose box overlaps a tolerance-expanded polygon-edge box remain on
+  //! the exact path; only provably boundary-free cells are classified/cached.
+  void buildGridCache() const;
+
+private:
+  //! Grid cell classification for the fast-path cache.
+  enum GridCell : signed char
+  {
+    GridCell_Outside   = -1, //!< Cell is fully outside the polygon
+    GridCell_Boundary  = 0,  //!< Cell straddles a polygon edge and needs an exact test
+    GridCell_Inside    = 1,  //!< Cell is fully inside the polygon
+    GridCell_Unvisited = 2   //!< Boundary-free cell not yet assigned by flood fill
+  };
+
+  //! Lifecycle of the optional immutable grid cache.
+  enum class GridState : unsigned char
+  {
+    NotBuilt, //!< No cache, including after a transient allocation failure
+    Building, //!< One thread owns construction; other threads use the exact path
+    Ready,    //!< Grid is complete and immutable
+    Disabled  //!< Polygon or tolerance intrinsically cannot use a grid
+  };
+
+  NCollection_Array1<double>           myPnts2dX;            //!< X coordinates (normalized)
+  NCollection_Array1<double>           myPnts2dY;            //!< Y coordinates (normalized)
+  double                               myTolU         = 0.0; //!< U tolerance (normalized)
+  double                               myTolV         = 0.0; //!< V tolerance (normalized)
+  double                               myOriginalTolU = 0.0; //!< U tolerance in input coordinates
+  double                               myOriginalTolV = 0.0; //!< V tolerance in input coordinates
+  int                                  myPointsCount  = 0;   //!< Number of polygon vertices
+  double                               myUMin         = 0.0; //!< Original minimum U bound
+  double                               myVMin         = 0.0; //!< Original minimum V bound
+  double                               myUMax         = 0.0; //!< Original maximum U bound
+  double                               myVMax         = 0.0; //!< Original maximum V bound
+  mutable NCollection_Array1<GridCell> myGrid;               //!< Immutable when Ready
+  mutable std::atomic<GridState>       myGridState{GridState::NotBuilt};
+  mutable std::atomic<size_t>          myQueryCount{0};
+};
+
+#endif // _CSLib_Class2d_HeaderFile

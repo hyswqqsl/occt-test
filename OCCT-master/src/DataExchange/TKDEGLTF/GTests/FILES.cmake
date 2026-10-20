@@ -1,0 +1,6 @@
+# Test source files for TKDEGLTF
+set(OCCT_TKDEGLTF_GTests_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
+
+set(OCCT_TKDEGLTF_GTests_FILES
+  DEGLTF_Provider_Test.cxx
+)

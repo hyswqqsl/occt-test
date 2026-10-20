@@ -1,0 +1,137 @@
+// Created on: 1993-06-14
+// Created by: Jean Yves LEBEY
+// Copyright (c) 1993-1999 Matra Datavision
+// Copyright (c) 1999-2014 OPEN CASCADE SAS
+//
+// This file is part of Open CASCADE Technology software library.
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 2.1 as published
+// by the Free Software Foundation, with special exception defined in the file
+// OCCT_LGPL_EXCEPTION.txt. Consult the file LICENSE_LGPL_21.txt included in OCCT
+// distribution for complete text of the license and disclaimer of any warranty.
+//
+// Alternatively, this file may be used under the terms of Open CASCADE
+// commercial license or contractual agreement.
+
+#include <BRep_Builder.hxx>
+#include <BRep_Tool.hxx>
+#include <NCollection_FlatDataMap.hxx>
+#include <TopoDS.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopOpeBRepBuild_define.hxx>
+#include <TopOpeBRepBuild_FaceBuilder.hxx>
+#include <TopOpeBRepBuild_GTopo.hxx>
+#include <TopOpeBRepBuild_HBuilder.hxx>
+#include <TopOpeBRepBuild_WireEdgeSet.hxx>
+#include <TopOpeBRepDS_BuildTool.hxx>
+#include <TopOpeBRepDS_CurveIterator.hxx>
+#include <TopOpeBRepDS_HDataStructure.hxx>
+
+//=================================================================================================
+
+void TopOpeBRepBuild_Builder::BuildFaces(const int                                       iS,
+                                         const occ::handle<TopOpeBRepDS_HDataStructure>& HDS)
+{
+  double       aTBSTol, aTBCTol;
+  BRep_Builder aBB;
+  TopoDS_Shape aFace;
+  //
+  // modified by NIZNHY-PKV Mon Dec 13 10:00:23 2010f
+  const TopOpeBRepDS_Surface& aTBS = HDS->Surface(iS);
+  aTBSTol                          = aTBS.Tolerance();
+  //
+  myBuildTool.MakeFace(aFace, aTBS);
+  //
+  // myBuildTool.MakeFace(aFace,HDS->Surface(iS));
+  // modified by NIZNHY-PKV Mon Dec 13 10:01:03 2010t
+  //
+  TopOpeBRepBuild_WireEdgeSet       WES(aFace, this);
+  NCollection_FlatDataMap<int, int> anEquivalentCurveOrientations;
+  for (TopOpeBRepDS_CurveIterator aCurveIt(HDS->SurfaceCurves(iS)); aCurveIt.More();
+       aCurveIt.Next())
+  {
+    const TopOpeBRepDS_Curve& aCurve          = HDS->Curve(aCurveIt.Current());
+    const int                 aReferenceCurve = aCurve.EquivalentCurve();
+    if (aReferenceCurve > 0)
+    {
+      TopAbs_Orientation anOrientation = aCurveIt.Orientation(TopAbs_IN);
+      if (aCurve.IsEquivalentCurveReversed())
+      {
+        anOrientation = TopAbs::Reverse(anOrientation);
+      }
+      int anOrientationMask = anEquivalentCurveOrientations.IsBound(aReferenceCurve)
+                                ? anEquivalentCurveOrientations(aReferenceCurve)
+                                : 0;
+      if (anOrientation == TopAbs_FORWARD)
+      {
+        anOrientationMask |= 1;
+      }
+      else if (anOrientation == TopAbs_REVERSED)
+      {
+        anOrientationMask |= 2;
+      }
+      if (anEquivalentCurveOrientations.IsBound(aReferenceCurve))
+      {
+        anEquivalentCurveOrientations.ChangeFind(aReferenceCurve) = anOrientationMask;
+      }
+      else
+      {
+        anEquivalentCurveOrientations.Bind(aReferenceCurve, anOrientationMask);
+      }
+    }
+  }
+  //
+  //
+  TopOpeBRepDS_CurveIterator SCurves(HDS->SurfaceCurves(iS));
+  for (; SCurves.More(); SCurves.Next())
+  {
+    int                       iC              = SCurves.Current();
+    const TopOpeBRepDS_Curve& CDS             = HDS->Curve(iC);
+    const int                 aReferenceCurve = CDS.EquivalentCurve();
+    if (aReferenceCurve > 0 && anEquivalentCurveOrientations.IsBound(aReferenceCurve)
+        && anEquivalentCurveOrientations(aReferenceCurve) == 3)
+    {
+      continue;
+    }
+    TopoDS_Shape                             anEdge;
+    NCollection_List<TopoDS_Shape>::Iterator Iti(NewEdges(iC));
+    for (; Iti.More(); Iti.Next())
+    {
+      anEdge = Iti.Value();
+      // modified by NIZNHY-PKV Mon Dec 13 10:09:38 2010f
+      TopoDS_Edge& aE = *((TopoDS_Edge*)&anEdge);
+      aTBCTol         = BRep_Tool::Tolerance(aE);
+      if (aTBCTol < aTBSTol)
+      {
+        aBB.UpdateEdge(aE, aTBSTol);
+      }
+      // modified by NIZNHY-PKV Mon Dec 13 10:09:43 2010f
+      TopAbs_Orientation ori = SCurves.Orientation(TopAbs_IN);
+      if (CDS.IsEquivalentCurveReversed())
+      {
+        ori = TopAbs::Reverse(ori);
+      }
+      myBuildTool.Orientation(anEdge, ori);
+      const occ::handle<Geom2d_Curve>& PC = SCurves.PCurve();
+      myBuildTool.PCurve(aFace, anEdge, CDS, PC);
+      WES.AddStartElement(anEdge);
+    }
+  }
+  //
+  TopOpeBRepBuild_FaceBuilder     FABU(WES, aFace);
+  NCollection_List<TopoDS_Shape>& FaceList = ChangeNewFaces(iS);
+  MakeFaces(aFace, FABU, FaceList);
+}
+
+//=================================================================================================
+
+void TopOpeBRepBuild_Builder::BuildFaces(const occ::handle<TopOpeBRepDS_HDataStructure>& HDS)
+{
+  int iS, n = HDS->NbSurfaces();
+  myNewFaces = new NCollection_HArray1<NCollection_List<TopoDS_Shape>>(0, n);
+  for (iS = 1; iS <= n; iS++)
+  {
+    BuildFaces(iS, HDS);
+  }
+}

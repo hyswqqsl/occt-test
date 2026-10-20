@@ -129,6 +129,19 @@ occt_viewer/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/occt_viewer.dir/build.make CMakeFiles/occt_viewer.dir/build
 .PHONY : occt_viewer/fast
 
+#=============================================================================
+# Target rules for targets named bottle_tutorial
+
+# Build rule for target.
+bottle_tutorial: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bottle_tutorial
+.PHONY : bottle_tutorial
+
+# fast build rule for target.
+bottle_tutorial/fast:
+	$(MAKE) $(MAKESILENT) -f learning/CMakeFiles/bottle_tutorial.dir/build.make learning/CMakeFiles/bottle_tutorial.dir/build
+.PHONY : bottle_tutorial/fast
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -161,6 +174,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... bottle_tutorial"
 	@echo "... occt_viewer"
 	@echo "... main.o"
 	@echo "... main.i"

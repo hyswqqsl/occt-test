@@ -1,3 +1,6 @@
 /Users/flysic/workspace/practise/unity/occt-test/build/CMakeFiles/occt_viewer.dir
 /Users/flysic/workspace/practise/unity/occt-test/build/CMakeFiles/edit_cache.dir
 /Users/flysic/workspace/practise/unity/occt-test/build/CMakeFiles/rebuild_cache.dir
+/Users/flysic/workspace/practise/unity/occt-test/build/learning/CMakeFiles/bottle_tutorial.dir
+/Users/flysic/workspace/practise/unity/occt-test/build/learning/CMakeFiles/edit_cache.dir
+/Users/flysic/workspace/practise/unity/occt-test/build/learning/CMakeFiles/rebuild_cache.dir

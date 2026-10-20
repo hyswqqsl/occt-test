@@ -10,6 +10,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/Users/flysic/workspace/practise/unity/occt-test/CMakeLists.txt"
   "CMakeFiles/4.4.4/CMakeCXXCompiler.cmake"
   "CMakeFiles/4.4.4/CMakeSystem.cmake"
+  "/Users/flysic/workspace/practise/unity/occt-test/learning/CMakeLists.txt"
   "/opt/homebrew/opt/glfw/lib/cmake/glfw3/glfw3Config.cmake"
   "/opt/homebrew/opt/glfw/lib/cmake/glfw3/glfw3ConfigVersion.cmake"
   "/opt/homebrew/opt/glfw/lib/cmake/glfw3/glfw3Targets-release.cmake"
@@ -76,9 +77,11 @@ set(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "learning/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/occt_viewer.dir/DependInfo.cmake"
+  "learning/CMakeFiles/bottle_tutorial.dir/DependInfo.cmake"
   )

@@ -1,0 +1,7 @@
+{
+  // 强制使用 CMakePresets.json (预设里已固定 Apple clang + build-debug 目录),
+  // 避免 CMake Tools 的 Kit 扫描选到 Homebrew g++ 导致 blocks(^) 语法报错
+  "cmake.useCMakePresets": "always",
+  // CMake: Debug 用 CodeLLDB 适配器 (macOS 上 cppdbg 的 MI 模式与苹果 lldb 不兼容)
+  "cmake.debugger.type": "code-lldb"
+}

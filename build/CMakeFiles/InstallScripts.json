@@ -1,7 +1,8 @@
 {
 	"InstallScripts" : 
 	[
-		"/Users/flysic/workspace/practise/unity/occt-test/build/cmake_install.cmake"
+		"/Users/flysic/workspace/practise/unity/occt-test/build/cmake_install.cmake",
+		"/Users/flysic/workspace/practise/unity/occt-test/build/learning/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

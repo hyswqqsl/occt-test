@@ -1,0 +1,18 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug (Apple clang)",
+      "description": "macOS 命令行工具链 Apple clang + 调试信息 (必须用 clang, g++ 不支持 macOS 系统 headers 的 blocks 语法)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/c++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ]
+}

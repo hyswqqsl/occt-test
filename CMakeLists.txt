@@ -13,3 +13,6 @@ target_link_libraries(occt_viewer PRIVATE
   TKDESTEP TKXSBase
   TKService TKV3d TKOpenGl
   glfw)
+
+# 瓶子建模教程 (OCCT-7_9_3/dox/tutorial/tutorial.md) 学习子项目
+add_subdirectory(learning)

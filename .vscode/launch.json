@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "调试 bottle_tutorial",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build-debug/learning/bottle_tutorial",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "构建 bottle_tutorial"
+    }
+  ]
+}

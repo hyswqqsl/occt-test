@@ -3,7 +3,7 @@
 //
 // 按教程章节渐进实现 makeBottle(), 每完成一章编译运行查看一次:
 //   [x] 第 1 步  sec2  Building the Profile    瓶子轮廓(当前显示的就是它)
-//   [ ] 第 2 步  sec3  Building the Body       瓶身: 拉伸/圆角/瓶颈/抽壳
+//   [x] 第 2 步  sec3  Building the Body       瓶身: 拉伸/圆角/瓶颈/抽壳 (当前显示)
 //   [ ] 第 3 步  sec4  Building the Threading  瓶颈螺纹
 //   [ ] 第 4 步  sec5  Building the Compound   合成最终瓶子
 //
@@ -35,6 +35,23 @@
 #include <BRepBuilderAPI_MakeWire.hxx>   // sec2.3 边 -> 拓扑线框
 #include <BRepBuilderAPI_Transform.hxx>  // sec2.4 对形状应用 gp_Trsf 变换
 
+// --- 第 2 步 (sec3 Building the Body) 新增头文件 ---
+#include <gp_Vec.hxx>                       // sec3.1 拉伸方向向量
+#include <gp_Ax2.hxx>                       // sec3.3 右手坐标系 (圆柱定位)
+#include <TopoDS_Face.hxx>                  // sec3.1 拓扑: 面
+#include <BRepBuilderAPI_MakeFace.hxx>      // sec3.1 wire -> face
+#include <BRepPrimAPI_MakePrism.hxx>        // sec3.1 棱柱拉伸 (sweep)
+#include <BRepFilletAPI_MakeFillet.hxx>     // sec3.2 圆角
+#include <TopExp_Explorer.hxx>              // sec3.2/3.4 拓扑遍历 (边、面)
+#include <BRepPrimAPI_MakeCylinder.hxx>     // sec3.3 圆柱 (瓶颈)
+#include <BRepAlgoAPI_Fuse.hxx>             // sec3.3 布尔并
+#include <BRep_Tool.hxx>                    // sec3.4 从拓扑取几何 (面 -> 表面)
+#include <Geom_Surface.hxx>                 // sec3.4 表面基类
+#include <Geom_Plane.hxx>                   // sec3.4 平面 (找顶面用)
+#include <Standard_Type.hxx>                // sec3.4 STANDARD_TYPE / DynamicType
+#include <TopTools_ListOfShape.hxx>         // sec3.4 形状列表 (抽壳入口参数)
+#include <BRepOffsetAPI_MakeThickSolid.hxx> // sec3.4 抽壳 (中空实体)
+
 // --- 可视化 (与根目录查看器一致) ---
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
@@ -55,8 +72,6 @@ TopoDS_Shape makeBottle(const Standard_Real myWidth,
                         const Standard_Real myHeight,
                         const Standard_Real myThickness)
 {
-  (void)myHeight;  // 第 2 步 (拉伸) 会用到
-
   // =========================================================================
   // 第 1 步: Building the Profile (tutorial.md sec2)
   // =========================================================================
@@ -105,8 +120,78 @@ TopoDS_Shape makeBottle(const Standard_Real myWidth,
   mkWire.Add(aMirroredWire);
   TopoDS_Wire myWireProfile = mkWire.Wire();
 
-  // >>> 第 1 步完成: 返回完整轮廓 wire (第 2 步将在此基础上生成瓶身)
-  return myWireProfile;
+  // =========================================================================
+  // 第 2 步: Building the Body (tutorial.md sec3)
+  // =========================================================================
+
+  // ---- sec3.1 Prism the Profile ------------------------------------------
+  // wire 是 1 维的, 参照教程 Shape/Generates 表: Wire -> Face -> 拉伸后 Solid。
+  // wire 落在平面上时 MakeFace 自动生成平面表面。
+  TopoDS_Face myFaceProfile = BRepBuilderAPI_MakeFace(myWireProfile);
+  // 沿 Z 轴正向拉伸 myHeight 高度 (gp_Vec = 有限棱柱的拉伸向量)
+  gp_Vec aPrismVec(0, 0, myHeight);
+  TopoDS_Shape myBody = BRepPrimAPI_MakePrism(myFaceProfile, aPrismVec);
+
+  // ---- sec3.2 Applying Fillets -------------------------------------------
+  // 对瓶身所有边倒圆角, 半径 = myThickness/12。
+  // 用 TopExp_Explorer 遍历实体全部边 (More/Current/Next 三板斧)
+  BRepFilletAPI_MakeFillet mkFillet(myBody);
+  TopExp_Explorer anEdgeExplorer(myBody, TopAbs_EDGE);
+  while (anEdgeExplorer.More()) {
+    TopoDS_Edge anEdge = TopoDS::Edge(anEdgeExplorer.Current());
+    mkFillet.Add(myThickness / 12., anEdge);  // 添加边 + 圆角半径
+    anEdgeExplorer.Next();
+  }
+  myBody = mkFillet.Shape();  // 取回倒角后的形状
+
+  // ---- sec3.3 Adding the Neck --------------------------------------------
+  // 瓶颈 = 圆柱体, 放在瓶身顶面 (0,0,myHeight), 沿 Z 正向。
+  // gp_Ax2: 由原点 + 主方向(Z)定义的局部坐标系, X 方向默认自动计算
+  gp_Pnt neckLocation(0, 0, myHeight);
+  gp_Dir neckAxis = gp::DZ();
+  gp_Ax2 neckAx2(neckLocation, neckAxis);
+
+  Standard_Real myNeckRadius  = myThickness / 4.;   // 30/4 = 7.5mm
+  Standard_Real myNeckHeight  = myHeight / 10.;     // 70/10 = 7mm
+
+  BRepPrimAPI_MakeCylinder mkCylinder(neckAx2, myNeckRadius, myNeckHeight);
+  TopoDS_Shape myNeck = mkCylinder.Shape();
+
+  // 布尔并: 瓶身 + 瓶颈 融合为一体 (BRepAlgoAPI 布尔运算包)
+  myBody = BRepAlgoAPI_Fuse(myBody, myNeck);
+
+  // ---- sec3.4 Creating a Hollowed Solid ----------------------------------
+  // 瓶子要能装东西: 从瓶颈顶面开始抽壳成中空实体。
+  // 壁厚 -myThickness/50 (负值 = 壳向实体内部生成)。
+  // 难点: 找到要移除的面 —— 位于最高处 (Z 最大) 的平面:
+  //   遍历所有面 -> BRep_Tool::Surface 取表面几何 -> DynamicType 判断是否 Geom_Plane
+  //   -> DownCast 转型 -> Geom_Plane::Location() 比较原点 Z 值
+  TopoDS_Face faceToRemove;
+  Standard_Real zMax = -1;
+
+  for (TopExp_Explorer aFaceExplorer(myBody, TopAbs_FACE); aFaceExplorer.More(); aFaceExplorer.Next()) {
+    TopoDS_Face aFace = TopoDS::Face(aFaceExplorer.Current());
+    Handle(Geom_Surface) aSurface = BRep_Tool::Surface(aFace);
+    if (aSurface->DynamicType() == STANDARD_TYPE(Geom_Plane)) {
+      Handle(Geom_Plane) aPlane = Handle(Geom_Plane)::DownCast(aSurface);
+      gp_Pnt aPnt = aPlane->Location();
+      Standard_Real aZ = aPnt.Z();
+      if (aZ > zMax) {
+        zMax = aZ;
+        faceToRemove = aFace;
+      }
+    }
+  }
+
+  // MakeThickSolidByJoin 接收"要移除的面"列表 (可能移除多个), 用 TopTools 集合
+  TopTools_ListOfShape facesToRemove;
+  facesToRemove.Append(faceToRemove);
+  BRepOffsetAPI_MakeThickSolid aSolidMaker;
+  aSolidMaker.MakeThickSolidByJoin(myBody, facesToRemove, -myThickness / 50, 1.e-3);
+  myBody = aSolidMaker.Shape();
+
+  // >>> 第 2 步完成: 返回带瓶颈的空心瓶身 (第 3 步在此之上加螺纹)
+  return myBody;
 }
 
 // ============================================================================
@@ -204,13 +289,13 @@ public:
     Handle(AIS_Shape) a = new AIS_Shape(s);
     // 颜色: AIS_Shape::SetColor 会同步传播到 WireAspect (见 AIS_Shape.cxx::setColor),
     // 所以改颜色用 SetColor 是有效的; 但要选区分度高的颜色 (1px 细线上淡色差异看不出来)
-    a->SetColor(Quantity_Color(1.0, 0.0, 0.0, Quantity_TOC_RGB));  // 纯红
+    a->SetColor(Quantity_Color(0.4, 0.4, 1.0, Quantity_TOC_RGB));  
     a->Attributes()->SetFaceBoundaryDraw(true);
     // 第 1 步显示的是 wire (无面), 用线框模式 + 加粗线条才看得清
     // ★ 宽度注意: wire 线框由 WireAspect 绘制 (StdPrs_WFShape.cxx L111/L222),
     //   设到 LineAspect 上是无效的!
     const bool isWire = s.ShapeType() == TopAbs_WIRE;
-    if (isWire) a->Attributes()->WireAspect()->SetWidth(6.0);
+    if (isWire) a->Attributes()->WireAspect()->SetWidth(2.0);
     // ↑ 若宽度看不出变化: macOS 的 OpenGL core profile 会把线宽钳制到 1px,
     //   属系统限制; 颜色不受影响
     ctx->Display(a, isWire ? AIS_WireFrame : AIS_Shaded, 0, false);

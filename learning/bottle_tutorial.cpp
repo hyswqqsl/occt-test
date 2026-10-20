@@ -3,8 +3,8 @@
 //
 // 按教程章节渐进实现 makeBottle(), 每完成一章编译运行查看一次:
 //   [x] 第 1 步  sec2  Building the Profile    瓶子轮廓(当前显示的就是它)
-//   [x] 第 2 步  sec3  Building the Body       瓶身: 拉伸/圆角/瓶颈/抽壳 (当前显示)
-//   [ ] 第 3 步  sec4  Building the Threading  瓶颈螺纹
+//   [x] 第 2 步  sec3  Building the Body       瓶身: 拉伸/圆角/瓶颈/抽壳
+//   [x] 第 3 步  sec4  Building the Threading  瓶颈螺纹 (当前显示)
 //   [ ] 第 4 步  sec5  Building the Compound   合成最终瓶子
 //
 // 模型规格 (sec1.3):
@@ -51,6 +51,23 @@
 #include <Standard_Type.hxx>                // sec3.4 STANDARD_TYPE / DynamicType
 #include <TopTools_ListOfShape.hxx>         // sec3.4 形状列表 (抽壳入口参数)
 #include <BRepOffsetAPI_MakeThickSolid.hxx> // sec3.4 抽壳 (中空实体)
+
+// --- 第 3 步 (sec4 Building the Threading) 新增头文件 ---
+#include <gp_Pnt2d.hxx>                     // sec4.2 2D 点 (参数空间 U,V)
+#include <gp_Dir2d.hxx>                     // sec4.2 2D 方向
+#include <gp_Ax2d.hxx>                      // sec4.2 2D 坐标系
+#include <Geom_CylindricalSurface.hxx>      // sec4.1 圆柱参数曲面
+#include <Geom2d_Ellipse.hxx>               // sec4.2 2D 椭圆 (Geom2d 包)
+#include <Geom2d_TrimmedCurve.hxx>          // sec4.2 2D 裁剪曲线
+#include <GCE2d_MakeSegment.hxx>            // sec4.2 2D 两点线段
+#include <BRepLib.hxx>                      // sec4.3 BuildCurves3d 反求 3D 曲线
+#include <BRepOffsetAPI_ThruSections.hxx>   // sec4.4 放样 (loft)
+
+// --- 网格模式(附加功能)头文件 ---
+#include <TopoDS_Compound.hxx>              // compound: 网格边集合容器
+#include <BRep_Builder.hxx>                 // 手工构建 compound
+#include <Poly_Triangulation.hxx>           // 三角剖分数据
+#include <BRepMesh_IncrementalMesh.hxx>     // 离散化 (BRepMesh 在 TKMesh, 已链接)
 
 // --- 可视化 (与根目录查看器一致) ---
 #include <AIS_InteractiveContext.hxx>
@@ -190,13 +207,113 @@ TopoDS_Shape makeBottle(const Standard_Real myWidth,
   aSolidMaker.MakeThickSolidByJoin(myBody, facesToRemove, -myThickness / 50, 1.e-3);
   myBody = aSolidMaker.Shape();
 
-  // >>> 第 2 步完成: 返回带瓶颈的空心瓶身 (第 3 步在此之上加螺纹)
-  return myBody;
+  // =========================================================================
+  // 第 3 步: Building the Threading (tutorial.md sec4)
+  // 思路: 不直接造 3D 螺旋线 (数学很难), 而是——
+  //   在圆柱曲面的 2D 参数空间 (U,V) 里画椭圆弧/线段, 让 OCCT 把它映射到曲面上:
+  //   圆柱面参数方程 P(U,V) = O + R*(cosU*xDir + sinU*yDir) + V*zDir
+  //     U ∈ [0, 2PI] (圆周角), V 无限 (高度)
+  //   斜着的 2D 线段在 3D 里就是螺旋线!
+  // =========================================================================
+
+  // ---- sec4.1 Creating Surfaces ------------------------------------------
+  // 两张与瓶颈同轴的圆柱面 (复用 sec3.3 的 neckAx2 坐标系):
+  //   aCyl1: R*0.99 略小于瓶颈 —— 螺纹底面, 保证与瓶颈保持接触
+  //   aCyl2: R*1.05 略大于瓶颈 —— 螺纹顶面, 稍突出于瓶颈表面
+  Handle(Geom_CylindricalSurface) aCyl1 = new Geom_CylindricalSurface(neckAx2, myNeckRadius * 0.99);
+  Handle(Geom_CylindricalSurface) aCyl2 = new Geom_CylindricalSurface(neckAx2, myNeckRadius * 1.05);
+
+  // ---- sec4.2 Defining 2D Curves -----------------------------------------
+  // 在 (U,V) 参数空间建局部坐标系: 原点在 (2PI, neckHeight/2),
+  // X 方向取 (2PI, neckHeight/4) —— 让两段椭圆弧各占瓶颈参数空间的一半
+  gp_Pnt2d aPnt(2. * M_PI, myNeckHeight / 2.);
+  gp_Dir2d aDir(2. * M_PI, myNeckHeight / 4.);
+  gp_Ax2d anAx2d(aPnt, aDir);
+
+  // 两张半椭圆 (长轴 2PI 跨半个圆周, 短轴控制螺距):
+  //   椭圆弧 + 线段围成螺纹的一个牙型截面; 因为 U 是圆周角, 弧线在 3D 里呈螺旋状
+  Standard_Real aMajor = 2. * M_PI;
+  Standard_Real aMinor = myNeckHeight / 10;
+
+  Handle(Geom2d_Ellipse) anEllipse1 = new Geom2d_Ellipse(anAx2d, aMajor, aMinor);
+  Handle(Geom2d_Ellipse) anEllipse2 = new Geom2d_Ellipse(anAx2d, aMajor, aMinor / 4);
+  Handle(Geom2d_TrimmedCurve) anArc1 = new Geom2d_TrimmedCurve(anEllipse1, 0, M_PI);
+  Handle(Geom2d_TrimmedCurve) anArc2 = new Geom2d_TrimmedCurve(anEllipse2, 0, M_PI);
+  // 取椭圆两端点, 用线段连接 (GCE2d 是 GC 的 2D 版)
+  gp_Pnt2d anEllipsePnt1 = anEllipse1->Value(0);
+  gp_Pnt2d anEllipsePnt2 = anEllipse1->Value(M_PI);
+
+  Handle(Geom2d_TrimmedCurve) aSegment = GCE2d_MakeSegment(anEllipsePnt1, anEllipsePnt2);
+
+  // ---- sec4.3 Building Edges and Wires -----------------------------------
+  // BRepBuilderAPI_MakeEdge 的「曲线+曲面」重载: 2D 曲线落在曲面参数空间上 → 3D pcurve 边
+  TopoDS_Edge anEdge1OnSurf1 = BRepBuilderAPI_MakeEdge(anArc1, aCyl1);
+  TopoDS_Edge anEdge2OnSurf1 = BRepBuilderAPI_MakeEdge(aSegment, aCyl1);
+  TopoDS_Edge anEdge1OnSurf2 = BRepBuilderAPI_MakeEdge(anArc2, aCyl2);
+  TopoDS_Edge anEdge2OnSurf2 = BRepBuilderAPI_MakeEdge(aSegment, aCyl2);
+
+  TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1OnSurf1, anEdge2OnSurf1);
+  TopoDS_Wire threadingWire2 = BRepBuilderAPI_MakeWire(anEdge1OnSurf2, anEdge2OnSurf2);
+
+  // 这些边只有 2D pcurve, 没有真实的 3D 曲线; BuildCurves3d 自动反求 (数学很复杂, OCCT 代劳)
+  BRepLib::BuildCurves3d(threadingWire1);
+  BRepLib::BuildCurves3d(threadingWire2);
+
+  // ---- sec4.4 Creating Threading -----------------------------------------
+  // 放样 (loft): 在两条螺纹线框之间张出实体 (构造函数第一个参数 true = 生成 Solid 而非 Shell)
+  // CheckCompatibility(false): 关闭「两 wire 边数一致」检查, 本例两 wire 各 2 条边, 无需检查
+  BRepOffsetAPI_ThruSections aTool(Standard_True);
+  aTool.AddWire(threadingWire1);
+  aTool.AddWire(threadingWire2);
+  aTool.CheckCompatibility(Standard_False);
+
+  TopoDS_Shape myThreading = aTool.Shape();
+
+  // >>> 第 3 步完成: 返回螺纹实体 (第 4 步把瓶身+螺纹合并成最终 Compound)
+  return myThreading;
+}
+
+// ============================================================================
+// 附加功能: 提取 B-Rep 三角网格, 生成"网格模式"显示用的边集合
+// 原理: BRepMesh_IncrementalMesh 对形状离散化 —— 这与着色渲染用的是同一套三角剖分
+//       (回忆之前讨论的: 着色模式就是把这套 mesh 填色), 然后遍历每个面的
+//       Poly_Triangulation, 把每个三角形的三条边生成为 TopoDS_Edge
+// ============================================================================
+static TopoDS_Shape extractTriangulationEdges(const TopoDS_Shape& theShape,
+                                              const Standard_Real theDeflection = 0.3)
+{
+  BRepMesh_IncrementalMesh aMesher(theShape, theDeflection);  // 离散化 (0.3mm 弦高)
+  (void)aMesher;
+
+  TopoDS_Compound aRes;
+  BRep_Builder aBuilder;
+  aBuilder.MakeCompound(aRes);
+
+  for (TopExp_Explorer aFaceExp(theShape, TopAbs_FACE); aFaceExp.More(); aFaceExp.Next()) {
+    TopoDS_Face aFace = TopoDS::Face(aFaceExp.Current());
+    TopLoc_Location aLoc;
+    Handle(Poly_Triangulation) aTri = BRep_Tool::Triangulation(aFace, aLoc);
+    if (aTri.IsNull()) continue;
+
+    // 节点存的是面局部坐标系下的坐标, 需经位置变换转到全局
+    const gp_Trsf& aTrsf = aLoc.Transformation();
+    for (int i = 1; i <= aTri->NbTriangles(); ++i) {
+      int n1, n2, n3;
+      aTri->Triangle(i).Get(n1, n2, n3);
+      gp_Pnt p1 = aTri->Node(n1).Transformed(aTrsf);
+      gp_Pnt p2 = aTri->Node(n2).Transformed(aTrsf);
+      gp_Pnt p3 = aTri->Node(n3).Transformed(aTrsf);
+      aBuilder.Add(aRes, BRepBuilderAPI_MakeEdge(p1, p2).Edge());
+      aBuilder.Add(aRes, BRepBuilderAPI_MakeEdge(p2, p3).Edge());
+      aBuilder.Add(aRes, BRepBuilderAPI_MakeEdge(p3, p1).Edge());
+    }
+  }
+  return aRes;
 }
 
 // ============================================================================
 // Viewer: GLFW 窗口 + OCCT 3D 视图 (精简自根目录 main.cpp, 用法相同)
-//   鼠标左键旋转 / 中键平移 / 滚轮缩放, F 适配视口, P 切透视, ESC 退出
+//   鼠标左键旋转 / 中键平移 / 滚轮缩放, F 适配视口, P 切透视, W 切显示模式, ESC 退出
 // ============================================================================
 class Viewer : public AIS_ViewController {
 public:
@@ -205,6 +322,9 @@ public:
   Handle(AIS_InteractiveContext) ctx;
   float scale = 1.f;
   bool perspectiveOn = true;
+  int  displayMode   = 0;     // 显示模式: 0=线框, 1=着色, 2=网格 (W 键循环)
+  TopoDS_Shape myShape;           // 最近一次 show() 的形状 (切模式时重显)
+  Handle(AIS_Shape) myAisObject;  // 当前显示的 AIS 对象 (切换模式时移除重建)
 
   bool init(int w, int h) {
     if (!glfwInit()) return false;
@@ -265,6 +385,11 @@ public:
       if (act != GLFW_PRESS) return;
       if (key == GLFW_KEY_F) { v->view->FitAll(0.05, false); v->applyProjectionState(); v->view->Redraw(); }
       if (key == GLFW_KEY_P) { v->perspectiveOn = !v->perspectiveOn; v->applyProjectionState(); v->view->Redraw(); }
+      // W: 循环切换显示模式 线框 -> 着色 -> 网格 -> ...
+      if (key == GLFW_KEY_W) {
+        v->displayMode = (v->displayMode + 1) % 3;
+        v->displayShape(v->myShape);
+      }
       if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(w, 1);
     });
     return true;
@@ -285,20 +410,30 @@ public:
     return Graphic3d_Vec2i(int(x * scale), int(y * scale));
   }
 
-  void show(const TopoDS_Shape& s) {
-    Handle(AIS_Shape) a = new AIS_Shape(s);
-    // 颜色: AIS_Shape::SetColor 会同步传播到 WireAspect (见 AIS_Shape.cxx::setColor),
-    // 所以改颜色用 SetColor 是有效的; 但要选区分度高的颜色 (1px 细线上淡色差异看不出来)
-    a->SetColor(Quantity_Color(0.4, 0.4, 1.0, Quantity_TOC_RGB));  
+  // 按当前 displayMode 显示形状: 0=线框, 1=着色, 2=网格(三角剖分边集合)
+  void displayShape(const TopoDS_Shape& s) {
+    // 切换模式时先移除上一个 AIS 对象 (三种模式的显示数据完全不同)
+    if (!myAisObject.IsNull()) { ctx->Remove(myAisObject, false); myAisObject.Nullify(); }
+
+    TopoDS_Shape s2 = s;
+    int mode = AIS_WireFrame;
+    if (displayMode == 2) {
+      s2 = extractTriangulationEdges(s);  // 网格模式: 显示离散化边集合
+    } else if (displayMode == 1) {
+      mode = AIS_Shaded;
+    }
+
+    Handle(AIS_Shape) a = new AIS_Shape(s2);
+    // 颜色: AIS_Shape::SetColor 会同步传播到 WireAspect (见 AIS_Shape.cxx::setColor)
+    a->SetColor(Quantity_Color(0.4, 0.4, 1.0, Quantity_TOC_RGB));
     a->Attributes()->SetFaceBoundaryDraw(true);
-    // 第 1 步显示的是 wire (无面), 用线框模式 + 加粗线条才看得清
-    // ★ 宽度注意: wire 线框由 WireAspect 绘制 (StdPrs_WFShape.cxx L111/L222),
-    //   设到 LineAspect 上是无效的!
-    const bool isWire = s.ShapeType() == TopAbs_WIRE;
-    if (isWire) a->Attributes()->WireAspect()->SetWidth(2.0);
-    // ↑ 若宽度看不出变化: macOS 的 OpenGL core profile 会把线宽钳制到 1px,
-    //   属系统限制; 颜色不受影响
-    ctx->Display(a, isWire ? AIS_WireFrame : AIS_Shaded, 0, false);
+    ctx->Display(a, mode, 0, false);
+    myAisObject = a;
+  }
+
+  void show(const TopoDS_Shape& s) {
+    myShape = s;
+    displayShape(s);
     view->FitAll(0.05, false);
     applyProjectionState();
     view->Redraw();

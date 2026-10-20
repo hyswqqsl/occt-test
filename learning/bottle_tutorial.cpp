@@ -2,10 +2,13 @@
 // OCCT 瓶子建模教程 —— 对应文档: OCCT-7_9_3/dox/tutorial/tutorial.md
 //
 // 按教程章节渐进实现 makeBottle(), 每完成一章编译运行查看一次:
-//   [x] 第 1 步  sec2  Building the Profile    瓶子轮廓(当前显示的就是它)
+//   [x] 第 1 步  sec2  Building the Profile    瓶子轮廓
 //   [x] 第 2 步  sec3  Building the Body       瓶身: 拉伸/圆角/瓶颈/抽壳
-//   [x] 第 3 步  sec4  Building the Threading  瓶颈螺纹 (当前显示)
-//   [ ] 第 4 步  sec5  Building the Compound   合成最终瓶子
+//   [x] 第 3 步  sec4  Building the Threading  瓶颈螺纹
+//   [x] 第 4 步  sec5  Building the Compound   合成最终瓶子 ✓ 教程完结
+//
+// 运行时按键: 1/2/3 = 显示 瓶身/螺纹/完整瓶子, W = 线框/着色/网格,
+//             F 适配视口, P 切透视, ESC 退出
 //
 // 模型规格 (sec1.3):
 //   myWidth = 50mm, myHeight = 70mm, myThickness = 30mm, 底面中心在原点
@@ -85,10 +88,18 @@
 // ============================================================================
 // makeBottle —— 教程主函数 (随步骤逐步扩展)
 // ============================================================================
-TopoDS_Shape makeBottle(const Standard_Real myWidth,
-                        const Standard_Real myHeight,
-                        const Standard_Real myThickness)
+// 教程最终版返回 Compound; 这里把三个阶段的产物都带出来, 供 1/2/3 键切换显示
+struct BottleParts {
+  TopoDS_Shape body;       // 瓶身 (轮廓拉伸+圆角+瓶颈+抽壳)
+  TopoDS_Shape threading;  // 瓶口螺纹 (放样)
+  TopoDS_Shape full;       // 完整瓶子 (body + threading 的 Compound)
+};
+
+BottleParts makeBottle(const Standard_Real myWidth,
+                       const Standard_Real myHeight,
+                       const Standard_Real myThickness)
 {
+  BottleParts parts;
   // =========================================================================
   // 第 1 步: Building the Profile (tutorial.md sec2)
   // =========================================================================
@@ -269,8 +280,22 @@ TopoDS_Shape makeBottle(const Standard_Real myWidth,
 
   TopoDS_Shape myThreading = aTool.Shape();
 
-  // >>> 第 3 步完成: 返回螺纹实体 (第 4 步把瓶身+螺纹合并成最终 Compound)
-  return myThreading;
+  // =========================================================================
+  // 第 4 步: Building the Resulting Compound (tutorial.md sec5)
+  // =========================================================================
+  // BRep_Builder + TopoDS_Compound: 把瓶身和螺纹装进一个"容器"形状。
+  // Compound 可以装任意数量、任意类型的形状, 是 OCCT 组织复杂模型的方式
+  TopoDS_Compound aRes;
+  BRep_Builder aBuilder;
+  aBuilder.MakeCompound(aRes);
+  aBuilder.Add(aRes, myBody);
+  aBuilder.Add(aRes, myThreading);
+
+  // >>> 教程完结: 瓶子完成! 三个阶段的产物都带出来供切换显示
+  parts.body      = myBody;
+  parts.threading = myThreading;
+  parts.full      = aRes;
+  return parts;
 }
 
 // ============================================================================
@@ -325,6 +350,8 @@ public:
   int  displayMode   = 0;     // 显示模式: 0=线框, 1=着色, 2=网格 (W 键循环)
   TopoDS_Shape myShape;           // 最近一次 show() 的形状 (切模式时重显)
   Handle(AIS_Shape) myAisObject;  // 当前显示的 AIS 对象 (切换模式时移除重建)
+  TopoDS_Shape myChoices[3];      // 1/2/3 可选的显示对象
+  const char*  myChoiceNames[3] = {"", "", ""};
 
   bool init(int w, int h) {
     if (!glfwInit()) return false;
@@ -390,6 +417,10 @@ public:
         v->displayMode = (v->displayMode + 1) % 3;
         v->displayShape(v->myShape);
       }
+      // 1/2/3: 选择显示对象 (瓶身 / 螺纹 / 完整瓶子)
+      if (key >= GLFW_KEY_1 && key <= GLFW_KEY_3) {
+        v->selectShape(key - GLFW_KEY_1);
+      }
       if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(w, 1);
     });
     return true;
@@ -431,6 +462,22 @@ public:
     myAisObject = a;
   }
 
+  // 注册 1/2/3 可选的显示对象
+  void setChoices(const TopoDS_Shape* theChoices, const char** theNames) {
+    for (int i = 0; i < 3; ++i) { myChoices[i] = theChoices[i]; myChoiceNames[i] = theNames[i]; }
+  }
+
+  // 选择显示对象: 0=瓶身, 1=螺纹, 2=完整瓶子 (沿用 displayShape 的线框/着色/网格机制)
+  void selectShape(int theIdx) {
+    if (theIdx < 0 || theIdx > 2 || myChoices[theIdx].IsNull()) return;
+    myShape = myChoices[theIdx];
+    displayShape(myShape);
+    view->FitAll(0.05, false);
+    applyProjectionState();
+    view->Redraw();
+    std::cout << "显示: " << myChoiceNames[theIdx] << "\n";
+  }
+
   void show(const TopoDS_Shape& s) {
     myShape = s;
     displayShape(s);
@@ -455,12 +502,18 @@ public:
 // 程序入口: 构建 50 x 70 x 30 规格的瓶子 (教程 sec1.3 规格表)
 // ============================================================================
 int main() {
-  TopoDS_Shape shape = makeBottle(50., 70., 30.);
-  if (shape.IsNull()) { std::cerr << "shape is null\n"; return 1; }
-  std::cout << "makeBottle stage OK: " << shape.ShapeType() << "\n";
+  BottleParts parts = makeBottle(50., 70., 30.);  // 教程规格: 50 x 70 x 30
+  if (parts.full.IsNull()) { std::cerr << "shape is null\n"; return 1; }
+
+  // 三种显示对象: 运行时按 1/2/3 切换
+  const TopoDS_Shape kChoices[3] = {parts.body, parts.threading, parts.full};
+  const char*        kNames[3]   = {"1=瓶身 body", "2=螺纹 threading", "3=完整瓶子 full bottle"};
 
   Viewer v;
   if (!v.init(1280, 800)) { std::cerr << "init failed\n"; return 1; }
-  v.show(shape);
+  v.setChoices(kChoices, kNames);
+  v.show(kChoices[2]);  // 默认显示完整瓶子
+  std::cout << "按 1/2/3 切换显示对象 (当前: " << kNames[2] << ")"
+            << ", W 切换 线框/着色/网格, ESC 退出\n";
   v.run();
 }

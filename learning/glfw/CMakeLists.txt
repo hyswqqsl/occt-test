@@ -10,7 +10,8 @@ target_include_directories(glfwocct PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${OpenCASCADE_INCLUDE_DIR})
 target_link_libraries(glfwocct PRIVATE
-  TKernel TKService TKV3d TKOpenGl      # 渲染栈: 基础/窗口服务/3D查看器/OpenGL驱动
+  TKernel TKMath TKService TKV3d TKOpenGl  # TKMath: gp/HLRAlgo 数学库
   TKBRep TKPrim TKTopAlgo               # 拓扑形状/基本体(Box,Cone)/拓扑算法
   TKGeomBase TKGeomAlgo TKG3d TKG2d     # 几何内核
+  TKHLR                                 # HLR 隐藏线消除 (三视图投影)
   glfw)

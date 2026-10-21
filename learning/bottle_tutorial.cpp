@@ -72,6 +72,7 @@
 #include <BRep_Builder.hxx>                 // 手工构建 compound
 #include <Poly_Triangulation.hxx>           // 三角剖分数据
 #include <BRepMesh_IncrementalMesh.hxx>     // 离散化 (BRepMesh 在 TKMesh, 已链接)
+#include <Standard_Failure.hxx>             // OCCT 异常基类 (跨 C 回调必须就地捕获)
 
 // --- 可视化 (与根目录查看器一致) ---
 #include <AIS_InteractiveContext.hxx>
@@ -334,7 +335,7 @@ static TopoDS_Shape extractTriangulationEdges(const TopoDS_Shape& theShape,
     TopoDS_Face aFace = TopoDS::Face(aFaceExp.Current());
     TopLoc_Location aLoc;
     Handle(Poly_Triangulation) aTri = BRep_Tool::Triangulation(aFace, aLoc);
-    if (aTri.IsNull()) continue;
+    if (aTri.IsNull() || aTri->NbTriangles() == 0) continue;
 
     // 节点存的是面局部坐标系下的坐标, 需经位置变换转到全局
     const gp_Trsf& aTrsf = aLoc.Transformation();
@@ -344,9 +345,15 @@ static TopoDS_Shape extractTriangulationEdges(const TopoDS_Shape& theShape,
       gp_Pnt p1 = aTri->Node(n1).Transformed(aTrsf);
       gp_Pnt p2 = aTri->Node(n2).Transformed(aTrsf);
       gp_Pnt p3 = aTri->Node(n3).Transformed(aTrsf);
-      aBuilder.Add(aRes, BRepBuilderAPI_MakeEdge(p1, p2).Edge());
-      aBuilder.Add(aRes, BRepBuilderAPI_MakeEdge(p2, p3).Edge());
-      aBuilder.Add(aRes, BRepBuilderAPI_MakeEdge(p3, p1).Edge());
+      // ★ 退化防御 (按 W 崩溃的根因): 网格里存在两端点重合的退化边 ——
+      //   典型来源是曲面接缝处 (圆柱 U=0/2π) 的三角形, UV 节点不同但 3D 重合。
+      //   MakeEdge 对这种边构造失败, 不检查 IsDone 就取 .Edge() 会抛出
+      //   StdFail_NotDone("BRep_API: command not done") —— 这正是 8.0 版教程
+      //   开头强调 "production code 应检查所有 builder 的 IsDone" 的原因
+      BRepBuilderAPI_MakeEdge mk12(p1, p2), mk23(p2, p3), mk31(p3, p1);
+      if (mk12.IsDone()) aBuilder.Add(aRes, mk12.Edge());
+      if (mk23.IsDone()) aBuilder.Add(aRes, mk23.Edge());
+      if (mk31.IsDone()) aBuilder.Add(aRes, mk31.Edge());
     }
   }
   return aRes;
@@ -483,24 +490,38 @@ public:
   }
 
   // 按当前 displayMode 显示形状: 0=线框, 1=着色, 2=网格(三角剖分边集合)
+  // 按当前 displayMode 显示形状: 0=线框, 1=着色, 2=网格(三角剖分边集合)
+  // ★ 异常安全: 本方法会被 GLFW 的 C 回调链调用。C 栈帧没有异常展开信息,
+  //   OCCT 的 Standard_Failure 一旦穿过它会直接 terminate → 必须就地捕获
   void displayShape(const TopoDS_Shape& s) {
-    // 切换模式时先移除上一个 AIS 对象 (三种模式的显示数据完全不同)
-    if (!myAisObject.IsNull()) { ctx->Remove(myAisObject, false); myAisObject.Nullify(); }
+    if (s.IsNull()) return;
 
-    TopoDS_Shape s2 = s;
+    Handle(AIS_Shape) aNew;
     int mode = AIS_WireFrame;
-    if (displayMode == 2) {
-      s2 = extractTriangulationEdges(s);  // 网格模式: 显示离散化边集合
-    } else if (displayMode == 1) {
-      mode = AIS_Shaded;
+    try {
+      TopoDS_Shape s2 = s;
+      if (displayMode == 2) {
+        s2 = extractTriangulationEdges(s);  // 网格模式: 显示离散化边集合
+      } else if (displayMode == 1) {
+        mode = AIS_Shaded;
+      }
+      aNew = new AIS_Shape(s2);
+      aNew->SetColor(Quantity_Color(0.4, 0.4, 1.0, Quantity_TOC_RGB));
+      aNew->Attributes()->SetFaceBoundaryDraw(true);
+      ctx->Display(aNew, mode, 0, false);
+    } catch (const Standard_Failure& e) {
+      // OCCT 异常: 打印类型+消息, 保留旧显示, 不让异常逃逸
+      std::cerr << "[OCCT 异常] " << e.DynamicType()->Name()
+                << ": " << e.GetMessageString() << "\n";
+      return;
+    } catch (const std::exception& e) {
+      std::cerr << "[异常] " << e.what() << "\n";
+      return;
     }
 
-    Handle(AIS_Shape) a = new AIS_Shape(s2);
-    // 颜色: AIS_Shape::SetColor 会同步传播到 WireAspect (见 AIS_Shape.cxx::setColor)
-    a->SetColor(Quantity_Color(0.4, 0.4, 1.0, Quantity_TOC_RGB));
-    a->Attributes()->SetFaceBoundaryDraw(true);
-    ctx->Display(a, mode, 0, false);
-    myAisObject = a;
+    // 成功后才替换旧对象 (失败时保持原显示)
+    if (!myAisObject.IsNull()) { ctx->Remove(myAisObject, false); myAisObject.Nullify(); }
+    myAisObject = aNew;
   }
 
   // 注册 1/2/3 可选的显示对象
@@ -522,8 +543,21 @@ public:
 
   // ★ 参数化实验核心: 按当前 prm 重建瓶子并刷新显示 (保持选择与显示模式不变)
   //   抽壳/放样是耗时步骤, 按键后会有可感知的短暂停顿
+  // ★ 参数化实验核心: 按当前 prm 重建瓶子并刷新显示 (保持选择与显示模式不变)
+  //   抽壳/放样是耗时步骤, 按键后会有可感知的短暂停顿
+  //   极端参数下 MakeThickSolidByJoin 等可能抛异常 —— 同样就地捕获 (教程没加 IsDone 检查)
   void applyParams() {
-    parts = makeBottle(prm);
+    BottleParts np;
+    try {
+      np = makeBottle(prm);
+    } catch (const Standard_Failure& e) {
+      std::cerr << "[建模失败] " << e.DynamicType()->Name()
+                << ": " << e.GetMessageString() << "\n";
+      return;
+    }
+    if (np.full.IsNull()) return;
+
+    parts = np;
     const TopoDS_Shape kC[3] = {parts.body, parts.threading, parts.full};
     const char*        kN[3] = {"1=瓶身 body", "2=螺纹 threading", "3=完整瓶子 full bottle"};
     setChoices(kC, kN);

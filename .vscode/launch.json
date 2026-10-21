@@ -9,6 +9,15 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "构建 bottle_tutorial"
+    },
+    {
+      "name": "调试 glfwocct (官方glfw示例)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build-debug/learning/glfw/glfwocct",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "构建 glfwocct"
     }
   ]
 }

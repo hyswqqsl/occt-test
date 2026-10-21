@@ -8,6 +8,14 @@
       "args": ["--build", "${workspaceFolder}/build-debug", "--target", "bottle_tutorial"],
       "group": { "kind": "build", "isDefault": true },
       "problemMatcher": []
+    },
+    {
+      "label": "构建 glfwocct",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build-debug", "--target", "glfwocct"],
+      "group": "build",
+      "problemMatcher": []
     }
   ]
 }

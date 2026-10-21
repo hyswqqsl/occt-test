@@ -19,6 +19,7 @@
 #include <GLFW/glfw3native.h>
 
 #include <cmath>  // M_PI
+#include <algorithm>  // std::min/std::max (参数夹取)
 
 // ---------------------------------------------------------------------------
 // 教程 sec2 用到的 OCCT 头文件
@@ -95,10 +96,22 @@ struct BottleParts {
   TopoDS_Shape full;       // 完整瓶子 (body + threading 的 Compound)
 };
 
-BottleParts makeBottle(const Standard_Real myWidth,
-                       const Standard_Real myHeight,
-                       const Standard_Real myThickness)
+// ★ 参数化实验: 各字段默认值 = 教程规格 (sec1.3); 后两项为实验扩展,
+//   分别对应 sec4.2 的椭圆长轴(圈数)与位置(V 范围)。运行时用方向键实时调整
+struct BottleParams {
+  double width       = 50.;   // myWidth     (sec1.3)
+  double height      = 70.;   // myHeight    (sec1.3)
+  double thickness   = 30.;   // myThickness (sec1.3): 驱动壁厚/圆角半径/瓶颈半径/抽壳厚度
+  double threadTurns = 2.0;   // 螺纹圈数(近似): 椭圆长轴 = turns*π, 教程值 2.0 → 2π
+  double threadVOff  = 0.0;   // 螺纹带沿瓶颈轴向的偏移 (mm), 教程值 0
+};
+
+BottleParts makeBottle(const BottleParams& theP)
 {
+  // 教程正文使用的三个局部名 (保持附录代码原样)
+  const Standard_Real myWidth     = theP.width;
+  const Standard_Real myHeight    = theP.height;
+  const Standard_Real myThickness = theP.thickness;
   BottleParts parts;
   // =========================================================================
   // 第 1 步: Building the Profile (tutorial.md sec2)
@@ -237,13 +250,16 @@ BottleParts makeBottle(const Standard_Real myWidth,
   // ---- sec4.2 Defining 2D Curves -----------------------------------------
   // 在 (U,V) 参数空间建局部坐标系: 原点在 (2PI, neckHeight/2),
   // X 方向取 (2PI, neckHeight/4) —— 让两段椭圆弧各占瓶颈参数空间的一半
-  gp_Pnt2d aPnt(2. * M_PI, myNeckHeight / 2.);
+  // ★ 实验: threadVOff 把整条螺纹带沿瓶颈轴向平移 (螺纹位置)
+  gp_Pnt2d aPnt(2. * M_PI, myNeckHeight / 2. + theP.threadVOff);
   gp_Dir2d aDir(2. * M_PI, myNeckHeight / 4.);
   gp_Ax2d anAx2d(aPnt, aDir);
 
   // 两张半椭圆 (长轴 2PI 跨半个圆周, 短轴控制螺距):
   //   椭圆弧 + 线段围成螺纹的一个牙型截面; 因为 U 是圆周角, 弧线在 3D 里呈螺旋状
-  Standard_Real aMajor = 2. * M_PI;
+  // ★ 实验: 长轴 = threadTurns*π → 控制螺旋绕圆柱的圈数 (教程值 2π ≈ 2 圈)
+  //   原理: 弧线 U 扫过范围 ≈ 2·长轴·cos(倾角), 与长轴成正比
+  Standard_Real aMajor = theP.threadTurns * M_PI;
   Standard_Real aMinor = myNeckHeight / 10;
 
   Handle(Geom2d_Ellipse) anEllipse1 = new Geom2d_Ellipse(anAx2d, aMajor, aMinor);
@@ -352,6 +368,9 @@ public:
   Handle(AIS_Shape) myAisObject;  // 当前显示的 AIS 对象 (切换模式时移除重建)
   TopoDS_Shape myChoices[3];      // 1/2/3 可选的显示对象
   const char*  myChoiceNames[3] = {"", "", ""};
+  int          choiceIdx  = 2;    // 当前选中的对象 (默认完整瓶子)
+  BottleParams prm;               // 当前建模参数 (方向键实时修改)
+  BottleParts  parts;             // 最近一次建模结果
 
   bool init(int w, int h) {
     if (!glfwInit()) return false;
@@ -421,6 +440,28 @@ public:
       if (key >= GLFW_KEY_1 && key <= GLFW_KEY_3) {
         v->selectShape(key - GLFW_KEY_1);
       }
+      // ---------- 参数化实验 (改参数 → 重建 → 重显) ----------
+      bool changed = false;
+      if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) {   // ↑/↓: 壁厚 myThickness
+        v->prm.thickness += (key == GLFW_KEY_UP) ? 2.0 : -2.0;
+        v->prm.thickness  = std::max(10.0, std::min(60.0, v->prm.thickness));
+        changed = true;
+      }
+      if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_LEFT) { // ←/→: 螺纹位置 (V 偏移)
+        v->prm.threadVOff += (key == GLFW_KEY_RIGHT) ? 0.5 : -0.5;
+        v->prm.threadVOff  = std::max(-2.5, std::min(2.5, v->prm.threadVOff));
+        changed = true;
+      }
+      if (key == GLFW_KEY_PERIOD || key == GLFW_KEY_COMMA) { // ,/.: 螺纹圈数
+        v->prm.threadTurns += (key == GLFW_KEY_PERIOD) ? 0.25 : -0.25;
+        v->prm.threadTurns  = std::max(0.5, std::min(4.0, v->prm.threadTurns));
+        changed = true;
+      }
+      if (key == GLFW_KEY_SPACE) {                          // 空格: 重置为教程规格
+        v->prm = BottleParams();
+        changed = true;
+      }
+      if (changed) v->applyParams();
       if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(w, 1);
     });
     return true;
@@ -470,12 +511,26 @@ public:
   // 选择显示对象: 0=瓶身, 1=螺纹, 2=完整瓶子 (沿用 displayShape 的线框/着色/网格机制)
   void selectShape(int theIdx) {
     if (theIdx < 0 || theIdx > 2 || myChoices[theIdx].IsNull()) return;
+    choiceIdx = theIdx;
     myShape = myChoices[theIdx];
     displayShape(myShape);
     view->FitAll(0.05, false);
     applyProjectionState();
     view->Redraw();
     std::cout << "显示: " << myChoiceNames[theIdx] << "\n";
+  }
+
+  // ★ 参数化实验核心: 按当前 prm 重建瓶子并刷新显示 (保持选择与显示模式不变)
+  //   抽壳/放样是耗时步骤, 按键后会有可感知的短暂停顿
+  void applyParams() {
+    parts = makeBottle(prm);
+    const TopoDS_Shape kC[3] = {parts.body, parts.threading, parts.full};
+    const char*        kN[3] = {"1=瓶身 body", "2=螺纹 threading", "3=完整瓶子 full bottle"};
+    setChoices(kC, kN);
+    selectShape(choiceIdx);
+    std::cout << "[params] thickness=" << prm.thickness
+              << " turns=" << prm.threadTurns
+              << " vOffset=" << prm.threadVOff << "\n";
   }
 
   void show(const TopoDS_Shape& s) {
@@ -502,18 +557,17 @@ public:
 // 程序入口: 构建 50 x 70 x 30 规格的瓶子 (教程 sec1.3 规格表)
 // ============================================================================
 int main() {
-  BottleParts parts = makeBottle(50., 70., 30.);  // 教程规格: 50 x 70 x 30
-  if (parts.full.IsNull()) { std::cerr << "shape is null\n"; return 1; }
-
-  // 三种显示对象: 运行时按 1/2/3 切换
-  const TopoDS_Shape kChoices[3] = {parts.body, parts.threading, parts.full};
-  const char*        kNames[3]   = {"1=瓶身 body", "2=螺纹 threading", "3=完整瓶子 full bottle"};
-
   Viewer v;
   if (!v.init(1280, 800)) { std::cerr << "init failed\n"; return 1; }
-  v.setChoices(kChoices, kNames);
-  v.show(kChoices[2]);  // 默认显示完整瓶子
-  std::cout << "按 1/2/3 切换显示对象 (当前: " << kNames[2] << ")"
-            << ", W 切换 线框/着色/网格, ESC 退出\n";
+  v.applyParams();  // 用默认参数 (= 教程规格 50/70/30) 建模并显示完整瓶子
+
+  std::cout << "========== OCCT 瓶子教程 · 参数化实验 ==========\n"
+            << "  1/2/3   显示 瓶身 / 螺纹 / 完整瓶子\n"
+            << "  W       线框 / 着色 / 网格\n"
+            << "  ↑/↓     壁厚 myThickness (驱动圆角/瓶颈半径/抽壳壁厚)\n"
+            << "  ←/→     螺纹位置 (沿瓶颈轴向平移)\n"
+            << "  ,/.     螺纹圈数 (椭圆长轴)\n"
+            << "  空格    重置为教程规格\n"
+            << "  F 适配视口, P 切透视, ESC 退出\n";
   v.run();
 }

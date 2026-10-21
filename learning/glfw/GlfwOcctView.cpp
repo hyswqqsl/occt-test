@@ -28,8 +28,10 @@
 #include <BRepPrimAPI_MakeCone.hxx>
 #include <AIS_TextLabel.hxx>
 #include <Aspect_TypeOfLine.hxx>
+#include <Bnd_Box.hxx>
 #include <BRep_Builder.hxx>
-#include <BRepBuilderAPI_Transform.hxx>
+#include <BRepBndLib.hxx>
+#include <Graphic3d_Camera.hxx>
 #include <HLRAlgo_Projector.hxx>
 #include <HLRBRep_Algo.hxx>
 #include <HLRBRep_HLRToShape.hxx>
@@ -42,6 +44,7 @@
 #include <TopAbs_ShapeEnum.hxx>
 #include <TopExp_Explorer.hxx>
 
+#include <cmath>
 #include <iostream>
 
 #include <GLFW/glfw3.h>
@@ -129,13 +132,10 @@ namespace
         Message_Info);
   }
 
-  //! 平移形状到布局位置
-  TopoDS_Shape translated (const TopoDS_Shape& theShape,
-                           Standard_Real theDx, Standard_Real theDy, Standard_Real theDz)
+  //! 按布局变换摆放形状: Moved 只改 TopoDS_Location (旋转+平移), 不复制几何数据, O(1) 开销
+  TopoDS_Shape layoutShape (const TopoDS_Shape& theShape, const gp_Trsf& theLayout)
   {
-    gp_Trsf aTrsf;
-    aTrsf.SetTranslation (gp_Vec (theDx, theDy, theDz));
-    return BRepBuilderAPI_Transform (theShape, aTrsf).Shape();
+    return theShape.Moved (theLayout);
   }
 
   //! 显示一个 3D 文本标签
@@ -152,27 +152,44 @@ namespace
     theCtx->Display (aLabel, false);
   }
 
-  //! 显示三视图的一组边: 可见边(黑) + 隐藏边(灰虚线)
+  //! 在图纸平面上加两点长度标注 (工程图样式)。
+  //! theP1/theP2: 该视图的图纸局部坐标 (z=0, 即 HLR 投影点经布局旋转后的平面);
+  //! theSheetOffset: 该视图在图纸上的摆放平移 (含 z 抬升);
+  //! theFlyout: 尺寸线引出距离 (负值引向图纸下方)。标注面法向固定 (0,0,1) — 所有标注都躺在图纸平面内。
+  void addViewLengthDim (const Handle(AIS_InteractiveContext)& theCtx,
+                         const gp_Pnt&   theP1,
+                         const gp_Pnt&   theP2,
+                         const gp_XYZ&   theSheetOffset,
+                         Standard_Real   theFlyout)
+  {
+    const gp_Pnt aP1 (theP1.X() + theSheetOffset.X(), theP1.Y() + theSheetOffset.Y(), theSheetOffset.Z());
+    const gp_Pnt aP2 (theP2.X() + theSheetOffset.X(), theP2.Y() + theSheetOffset.Y(), theSheetOffset.Z());
+    Handle(PrsDim_LengthDimension) aDim = new PrsDim_LengthDimension (aP1, aP2, gp_Pln (aP1, gp_Dir (0, 0, 1)));
+    aDim->SetFlyout (theFlyout);
+    theCtx->Display (aDim, false);
+  }
+
+  //! 显示三视图的一组边: 隐藏边先画(灰虚线), 可见边后画(黑实线盖住重合部分) — 工程制图惯例
   void displayViewEdges (const Handle(AIS_InteractiveContext)& theCtx,
                          const TopoDS_Shape& theVisible,
                          const TopoDS_Shape& theHidden,
-                         Standard_Real theDx, Standard_Real theDy, Standard_Real theDz)
+                         const gp_Trsf&      theLayout)
   {
-    if (!theVisible.IsNull())
-    {
-      Handle(AIS_Shape) aVisShape = new AIS_Shape (translated (theVisible, theDx, theDy, theDz));
-      // 可见边: 黑色实线加粗
-      aVisShape->Attributes()->SetWireAspect (
-          new Prs3d_LineAspect (Quantity_NOC_BLACK, Aspect_TOL_SOLID, 2.0));
-      theCtx->Display (aVisShape, AIS_WireFrame, 0, false);
-    }
     if (!theHidden.IsNull())
     {
-      Handle(AIS_Shape) aHidShape = new AIS_Shape (translated (theHidden, theDx, theDy, theDz));
+      Handle(AIS_Shape) aHidShape = new AIS_Shape (layoutShape (theHidden, theLayout));
       // 线型改成虚线: Prs3d_Drawer::WireAspect 控制 AIS_Shape 的线框边显示
       aHidShape->Attributes()->SetWireAspect (
           new Prs3d_LineAspect (Quantity_NOC_GRAY50, Aspect_TOL_DASH, 1.0));
       theCtx->Display (aHidShape, AIS_WireFrame, 0, false);
+    }
+    if (!theVisible.IsNull())
+    {
+      Handle(AIS_Shape) aVisShape = new AIS_Shape (layoutShape (theVisible, theLayout));
+      // 可见边: 黑色实线加粗
+      aVisShape->Attributes()->SetWireAspect (
+          new Prs3d_LineAspect (Quantity_NOC_BLACK, Aspect_TOL_SOLID, 2.0));
+      theCtx->Display (aVisShape, AIS_WireFrame, 0, false);
     }
   }
 }
@@ -277,7 +294,7 @@ void GlfwOcctView::initViewer()
   aViewer->SetDefaultLights();
   aViewer->SetLightOn();
   aViewer->SetDefaultTypeOfView (V3d_PERSPECTIVE);
-  aViewer->ActivateGrid (Aspect_GT_Rectangular, Aspect_GDM_Lines);
+  //aViewer->ActivateGrid (Aspect_GT_Rectangular, Aspect_GDM_Lines);
   myView = aViewer->CreateView();
   myView->SetImmediateUpdate (false);
   myView->SetWindow (myOcctWindow, myOcctWindow->NativeGlContext());
@@ -306,7 +323,7 @@ void GlfwOcctView::initDemoScene()
   Handle(AIS_Shape) aCone = new AIS_Shape (BRepPrimAPI_MakeCone (anAxis, 55, 0, 70).Shape());
   myContext->Display (aCone, AIS_Shaded, 0, false);
 
-  // ===================== 三视图 (HLR 隐藏线消除投影) =====================
+  // ===================== 三视图: 工程图纸布局 (全在 z=0 平面内) =====================
   // 把立方体+圆锥合成一个复合体, 一次性投影
   TopoDS_Compound aModel;
   BRep_Builder aBuilder;
@@ -314,30 +331,63 @@ void GlfwOcctView::initDemoScene()
   aBuilder.Add (aModel, aBox->Shape());
   aBuilder.Add (aModel, aCone->Shape());
 
+  // 第一角投影排布: 主视图左, 俯视图在正下方, 左视图在右方 (GB 制图惯例)
+  // ★ HLRBRep_HLRToShape 返回的边就是 2D 投影坐标 (x', y', 0), 已经躺在 z=0 平面!
+  //   (包围盒调试证实: 正视图 vis bbox=(-30,0,0)-(80,70,0), 与投影方向无关)
+  //   所以每个视图只需平移, 不需要任何旋转:
+  //   正视图 x'∈[-30,80], y'∈[0,70]   → 平移 (-500, 0)
+  //   左视图 x'∈[-180,0], y'∈[0,70]   → 平移 (-200, 0)
+  //   俯视图 x'∈[-30,80], y'∈[0,180]  → 平移 (-500,-220)
+
+  // 摆放到图纸位置 (z=5: 稍抬离网格避免共面闪烁)
+  const gp_XYZ aFrontOff (-500.0,    0.0, 5.0);
+  const gp_XYZ aLeftOff  (-200.0,    0.0, 5.0);
+  const gp_XYZ aTopOff   (-500.0, -220.0, 5.0);
+  gp_Trsf aMoveFront; aMoveFront.SetTranslation (gp_Vec (aFrontOff));
+  gp_Trsf aMoveLeft;  aMoveLeft.SetTranslation  (gp_Vec (aLeftOff));
+  gp_Trsf aMoveTop;   aMoveTop.SetTranslation   (gp_Vec (aTopOff));
+
   struct HlrViewDef
   {
-    const char* Name;   // 视图名称
+    const char* Name;     // 视图名称
     gp_Dir      ViewDir;  // 观察方向(指向观察者, 即 gp_Ax2 的 Z)
     gp_Dir      XDir;     // 投影平面横轴
-    gp_XYZ      Offset;   // 平移到布局位置
+    gp_Trsf     Layout;   // 布局变换: 平移到图纸位置
+    gp_XYZ      LabelPos; // 视图名称标签位置
   };
   const HlrViewDef aViewDefs[] =
   {
-    // 从 -Y 看 → 投影到 XZ 平面 (x'=X, y'=Z)
-    {"Front view", gp_Dir (0, -1, 0), gp_Dir (1, 0, 0), gp_XYZ (0, -350, 0)},
-    // 从 -X 看 → 投影到 YZ 平面 (x'=-Y, y'=Z)
-    {"Left view",  gp_Dir (-1, 0, 0), gp_Dir (0, -1, 0), gp_XYZ (350, -350, 0)},
-    // 从 +Z 看 → 投影到 XY 平面 (x'=X, y'=Y)
-    {"Top view",   gp_Dir (0, 0, 1), gp_Dir (1, 0, 0), gp_XYZ (0, -700, 0)}
+    {"Front view", gp_Dir (0, -1, 0), gp_Dir (1, 0, 0), aMoveFront, gp_XYZ (-540, -30, 5)},
+    {"Left view",  gp_Dir (-1, 0, 0), gp_Dir (0, -1, 0), aMoveLeft,  gp_XYZ (-375, -30, 5)},
+    {"Top view",   gp_Dir (0, 0, 1),  gp_Dir (1, 0, 0),  aMoveTop,   gp_XYZ (-540, -255, 5)}
   };
   for (const HlrViewDef& aDef : aViewDefs)
   {
     TopoDS_Shape aVis, aHid;
     hlrProject (aModel, gp_Ax2 (gp_Pnt (0, 0, 0), aDef.ViewDir, aDef.XDir), aVis, aHid);
-    displayViewEdges (myContext, aVis, aHid, aDef.Offset.X(), aDef.Offset.Y(), aDef.Offset.Z());
+    displayViewEdges (myContext, aVis, aHid, aDef.Layout);
     addTextLabel (myContext, aDef.Name,
-                  gp_Pnt (aDef.Offset.X() - 40, aDef.Offset.Y() - 60, aDef.Offset.Z()), 15.0);
+                  gp_Pnt (aDef.LabelPos.X(), aDef.LabelPos.Y(), aDef.LabelPos.Z()), 15.0);
   }
+
+  // ===================== 三视图上的尺寸标注 (全在图纸平面内) =====================
+  // 标注点 = 视图图纸局部坐标 (z=0) + 该视图摆放平移, 与 displayViewEdges 完全同一平面
+
+  // 正视图: 盒宽 50 / 圆锥高 70 / 圆锥底宽 110
+  addViewLengthDim (myContext, gp_Pnt (0, 0, 0),   gp_Pnt (50, 0, 0),   aFrontOff, -12.0);
+  addViewLengthDim (myContext, gp_Pnt (25, 0, 0),  gp_Pnt (25, 0, 70),  aFrontOff,  20.0);
+  addViewLengthDim (myContext, gp_Pnt (-30, 0, 0), gp_Pnt (80, 0, 0),   aFrontOff, -35.0);
+
+  // 左视图: 盒深 50 / 圆锥高 70 (局部横轴 = -Y)
+  addViewLengthDim (myContext, gp_Pnt (0, 0, 0),    gp_Pnt (-50, 0, 0),  aLeftOff, -12.0);
+  addViewLengthDim (myContext, gp_Pnt (-125, 0, 0), gp_Pnt (-125, 70, 0), aLeftOff, 20.0);
+
+  // 俯视图: 盒宽 50 / 圆锥底半径 55
+  addViewLengthDim (myContext, gp_Pnt (0, 0, 0),   gp_Pnt (50, 0, 0),   aTopOff, -12.0);
+  gp_Circ aTopCirc (gp_Ax2 (gp_Pnt (25.0 + aTopOff.X(), 125.0 + aTopOff.Y(), aTopOff.Z()),
+                            gp_Dir (0, 0, 1)), 55.0);
+  Handle(PrsDim_RadiusDimension) aTopRadDim = new PrsDim_RadiusDimension (aTopCirc);
+  myContext->Display (aTopRadDim, false);
 
   // ===================== 尺寸标注 (PrsDim, 7.9 中 AIS_*Dimension 的正式名字) =====================
   // 立方体底边长度 50: 标在正对观察者的 XZ 平面(z=0 平面, 法向 -Y)
@@ -359,9 +409,15 @@ void GlfwOcctView::initDemoScene()
   Handle(PrsDim_RadiusDimension) aRadDim = new PrsDim_RadiusDimension (aBaseCirc);
   myContext->Display (aRadDim, false);
 
-  // 把整个场景(含下方/侧方的三视图)适配到当前相机视野
+  // ============ 工程 2D 视角: 正交投影 + 从 +Z 正对图纸, 只适配图纸区域 ============
+  // (3D 模型仍在原点, 缩小/旋转即可看到; DRAW 的 vtop/vcortho 就是这两步)
   myContext->UpdateCurrentViewer();
-  myView->FitAll (0.9);   // 留边系数
+  myView->Camera()->SetProjectionType (Graphic3d_Camera::Projection_Orthographic);
+  myView->SetProj (V3d_Zpos);
+  Bnd_Box aSheetBox;   // 包住三个视图+标注的图纸区域
+  aSheetBox.Add (gp_Pnt (-560.0, -300.0, 0.0));
+  aSheetBox.Add (gp_Pnt (-190.0,  110.0, 0.0));
+  myView->FitAll (aSheetBox, 0.9);
   myView->ZFitAll();
 
   TCollection_AsciiString aGlInfo;

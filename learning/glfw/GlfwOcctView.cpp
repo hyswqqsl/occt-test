@@ -29,8 +29,9 @@
 #include <AIS_TextLabel.hxx>
 #include <Aspect_TypeOfLine.hxx>
 #include <Bnd_Box.hxx>
+#include <BRepAdaptor_Curve.hxx>
 #include <BRep_Builder.hxx>
-#include <BRepBndLib.hxx>
+#include <GCPnts_UniformDeflection.hxx>
 #include <Graphic3d_Camera.hxx>
 #include <HLRAlgo_Projector.hxx>
 #include <HLRBRep_Algo.hxx>
@@ -44,8 +45,15 @@
 #include <TopAbs_ShapeEnum.hxx>
 #include <TopExp_Explorer.hxx>
 
+#include <dxflib/dl_codes.h>
+#include <dxflib/dl_dxf.h>
+#include <dxflib/dl_entities.h>
+#include <dxflib/dl_writer_ascii.h>
+
+#include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 #include <GLFW/glfw3.h>
 
@@ -191,6 +199,290 @@ namespace
           new Prs3d_LineAspect (Quantity_NOC_BLACK, Aspect_TOL_SOLID, 2.0));
       theCtx->Display (aVisShape, AIS_WireFrame, 0, false);
     }
+  }
+
+  //! 三视图布局定义 (命名空间作用域, 供 DXF 导出函数使用)
+  struct HlrViewDef
+  {
+    const char* Name;     // 视图名称
+    gp_Dir      ViewDir;  // 观察方向(指向观察者, 即 gp_Ax2 的 Z)
+    gp_Dir      XDir;     // 投影平面横轴
+    gp_Trsf     Layout;   // 布局变换: 平移到图纸位置
+    gp_XYZ      LabelPos; // 视图名称标签位置
+  };
+
+  //! DXF: 把 laid-out 形状的边离散成线段写入指定图层 (圆弧/样条按 0.05 弦高差采样)
+  void dxfWriteShapeEdges (DL_Dxf& theDxf, DL_WriterA& theW,
+                           const TopoDS_Shape& theShape,
+                           const std::string&  theLayer,
+                           int                 theColor,
+                           const std::string&  theLinetype)
+  {
+    for (TopExp_Explorer anExp (theShape, TopAbs_EDGE); anExp.More(); anExp.Next())
+    {
+      const TopoDS_Edge anEdge = TopoDS::Edge (anExp.Current());
+      BRepAdaptor_Curve aCurve (anEdge);
+      std::vector<gp_Pnt> aPts;
+      if (aCurve.GetType() == GeomAbs_Line)
+      {
+        aPts.push_back (aCurve.Value (aCurve.FirstParameter()));
+        aPts.push_back (aCurve.Value (aCurve.LastParameter()));
+      }
+      else
+      {
+        GCPnts_UniformDeflection aDisc (aCurve, 0.05);
+        if (!aDisc.IsDone() || aDisc.NbPoints() < 2) continue;
+        for (Standard_Integer i = 1; i <= aDisc.NbPoints(); ++i)
+        {
+          aPts.push_back (aDisc.Value (i));
+        }
+      }
+      for (size_t i = 1; i < aPts.size(); ++i)
+      {
+        theDxf.writeLine (theW,
+                          DL_LineData (aPts[i-1].X(), aPts[i-1].Y(), 0.0,
+                                       aPts[i].X(),   aPts[i].Y(),   0.0),
+                          DL_Attributes (theLayer, theColor, 0, theLinetype, 1.0));
+      }
+    }
+  }
+
+  //! DXF 标注参数: 线性 = 两测量点 + 引出距离; 径向 = 圆心(x1,y1) + 半径(x2)
+  struct DxfDimSpec
+  {
+    bool        radial;
+    double      x1, y1;
+    double      x2, y2;   // 线性: 第二测量点; 径向: 半径
+    double      flyout;   // 尺寸线引出距离 (带符号定方向)
+    const char* text;     // 标注文字 (如 "50" / "R55")
+  };
+
+  //! DXF: SOLID 实心三角箭头 (尖端在 theTip, 指向 theDir 方向)
+  void dxfWriteArrow (DL_Dxf& theDxf, DL_WriterA& theW,
+                      double theTipX, double theTipY,
+                      double theDirX, double theDirY,
+                      const DL_Attributes& theAttrib)
+  {
+    const double aBX = theTipX + theDirX * 3.5, aBY = theTipY + theDirY * 3.5;
+    const double aNX = -theDirY * 1.2, aNY = theDirX * 1.2;
+    theDxf.writeSolid (theW,
+                       DL_SolidData (theTipX,    theTipY,    0.0,
+                                     aBX + aNX, aBY + aNY, 0.0,
+                                     aBX - aNX, aBY - aNY, 0.0,
+                                     aBX - aNX, aBY - aNY, 0.0),
+                       theAttrib);
+  }
+
+  //! DXF: 线性尺寸标注 (尺寸界线 + 尺寸线 + 双箭头 + 数值文字)
+  void dxfWriteLinearDim (DL_Dxf& theDxf, DL_WriterA& theW, const DxfDimSpec& theDim)
+  {
+    const double aDx = theDim.x2 - theDim.x1, aDy = theDim.y2 - theDim.y1;
+    const double aLen = std::sqrt (aDx*aDx + aDy*aDy);
+    const double aUx = aDx / aLen, aUy = aDy / aLen;   // 尺寸方向单位向量
+    const double aNx = -aUy, aNy = aUx;                 // 左法向 (flyout 方向基)
+    const double aS = (theDim.flyout >= 0.0) ? 1.0 : -1.0;
+    const double aB1x = theDim.x1 + aNx * theDim.flyout, aB1y = theDim.y1 + aNy * theDim.flyout;
+    const double aB2x = theDim.x2 + aNx * theDim.flyout, aB2y = theDim.y2 + aNy * theDim.flyout;
+
+    const DL_Attributes aAttr ("DIM", 3, 0, "CONTINUOUS", 1.0);  // 绿色
+
+    // 尺寸界线: 测量点留 1.5 间隙, 超出尺寸线 2.0
+    theDxf.writeLine (theW, DL_LineData (theDim.x1 + aNx*1.5*aS, theDim.y1 + aNy*1.5*aS, 0.0,
+                                         aB1x + aUx*2.0, aB1y + aUy*2.0, 0.0), aAttr);
+    theDxf.writeLine (theW, DL_LineData (theDim.x2 + aNx*1.5*aS, theDim.y2 + aNy*1.5*aS, 0.0,
+                                         aB2x + aUx*2.0, aB2y + aUy*2.0, 0.0), aAttr);
+    // 尺寸线
+    theDxf.writeLine (theW, DL_LineData (aB1x, aB1y, 0.0, aB2x, aB2y, 0.0), aAttr);
+    // 双箭头 (尖端朝外指向尺寸界线)
+    dxfWriteArrow (theDxf, theW, aB1x, aB1y, -aUx, -aUy, aAttr);
+    dxfWriteArrow (theDxf, theW, aB2x, aB2y,  aUx,  aUy, aAttr);
+    // 数值文字 (尺寸线中点, 外侧偏移 2.5)
+    const double aTx = (aB1x + aB2x) / 2.0 + aNx * 2.5 * aS;
+    const double aTy = (aB1y + aB2y) / 2.0 + aNy * 2.5 * aS;
+    double aAngleDeg = std::atan2 (aUy, aUx) * 180.0 / M_PI;
+    if (aAngleDeg > 90.0)  { aAngleDeg -= 180.0; }   // 保证文字不倒置
+    if (aAngleDeg < -90.0) { aAngleDeg += 180.0; }
+    theDxf.writeText (theW,
+                      DL_TextData (aTx, aTy, 0.0, aTx, aTy, 0.0,
+                                   6.0, 1.0, 0, 1, 1,   // 居中对齐
+                                   theDim.text, "Standard", aAngleDeg),
+                      DL_Attributes ("DIM", 3, 0, "CONTINUOUS", 1.0));
+  }
+
+  //! DXF: 半径标注 (R 文字)
+  void dxfWriteRadialDim (DL_Dxf& theDxf, DL_WriterA& theW,
+                          double theCx, double theCy, double theR,
+                          const char* theText)
+  {
+    const double aD = M_PI / 4.0;   // 指向 45° 方向圆周点
+    const double aDx = std::cos (aD), aDy = std::sin (aD);
+    const double aEx = theCx + aDx * theR, aEy = theCy + aDy * theR;
+
+    const DL_Attributes aAttr ("DIM", 3, 0, "CONTINUOUS", 1.0);
+    theDxf.writeLine (theW, DL_LineData (theCx, theCy, 0.0, aEx, aEy, 0.0), aAttr);
+    dxfWriteArrow (theDxf, theW, aEx, aEy, aDx, aDy, aAttr);
+    const double aTx = aEx + aDx * 4.0, aTy = aEy + aDy * 4.0;
+    theDxf.writeText (theW,
+                      DL_TextData (aTx, aTy, 0.0, aTx, aTy, 0.0,
+                                   6.0, 1.0, 0, 0, 0,
+                                   theText, "Standard", 0.0),
+                      DL_Attributes ("DIM", 3, 0, "CONTINUOUS", 1.0));
+  }
+
+  //! 导出三视图为 DXF R2000 CAD 文件: 每视图两个图层 (可见/隐藏), 附视图名称文字,
+  //! 尺寸标注 (箭头+数值) 与标题栏描述信息表。
+  //! HLR 重新计算一遍 (与屏幕显示解耦)。
+  bool exportViewsToDxf (const char* thePath,
+                         const TopoDS_Shape&            theModel,
+                         const std::vector<HlrViewDef>& theDefs,
+                         const std::vector<DxfDimSpec>& theDims)
+  {
+    // 1. 计算全部投影并摆到图纸位置
+    std::vector<TopoDS_Shape> aVisList, aHidList;
+    for (const HlrViewDef& aDef : theDefs)
+    {
+      TopoDS_Shape aVis, aHid;
+      hlrProject (theModel, gp_Ax2 (gp_Pnt (0, 0, 0), aDef.ViewDir, aDef.XDir), aVis, aHid);
+      aVisList.push_back (layoutShape (aVis, aDef.Layout));
+      aHidList.push_back (layoutShape (aHid, aDef.Layout));
+    }
+
+    // 2. 写 DXF
+    DL_Dxf aDxf;
+    DL_WriterA* aW = aDxf.out (thePath, DL_VERSION_2000);
+    if (aW == NULL)
+    {
+      Message::DefaultMessenger()->Send (
+          TCollection_AsciiString ("DXF export failed: ") + thePath, Message_Fail);
+      return false;
+    }
+
+    aDxf.writeHeader (*aW);
+
+    // --- HEADER 描述信息: 单位/精度/公制/图纸范围 (描述 table 信息) ---
+    aW->dxfString (9, "$INSUNITS");    aW->dxfInt (70, 4);   // 4 = 毫米
+    aW->dxfString (9, "$LUNITS");      aW->dxfInt (70, 2);   // 2 = 十进制
+    aW->dxfString (9, "$MEASUREMENT"); aW->dxfInt (70, 1);   // 1 = 公制
+    aW->dxfString (9, "$EXTMIN");
+    aW->dxfReal (10, -600.0); aW->dxfReal (20, -330.0); aW->dxfReal (30, 0.0);
+    aW->dxfString (9, "$EXTMAX");
+    aW->dxfReal (10,  120.0); aW->dxfReal (20,  200.0); aW->dxfReal (30, 0.0);
+    aW->sectionEnd();
+
+    // --- TABLES: 视口/线型/图层/文字样式/视图/UCS/APPID/标注样式/块记录 ---
+    aW->sectionTables();
+    aDxf.writeVPort (*aW);
+    aW->tableLinetypes (4);
+    aDxf.writeLinetype (*aW, DL_LinetypeData ("BYBLOCK",    "", 0, 0, 0.0));
+    aDxf.writeLinetype (*aW, DL_LinetypeData ("BYLAYER",    "", 0, 0, 0.0));
+    aDxf.writeLinetype (*aW, DL_LinetypeData ("CONTINUOUS", "", 0, 0, 0.0));
+    double aDash[2] = {4.0, -2.0};  // 长划 4 + 空 2
+    aDxf.writeLinetype (*aW, DL_LinetypeData ("HIDDEN", "Hidden __ __", 0, 2, 6.0, aDash));
+    aW->tableEnd();
+
+    aW->tableLayers (1 + (int)theDefs.size() * 2 + 3);   // 0 + 每视图2层 + DIM + TITLE
+    aDxf.writeLayer (*aW, DL_LayerData ("0", 0),
+                     DL_Attributes ("0", 0, 0, "CONTINUOUS", 1.0));
+    for (const HlrViewDef& aDef : theDefs)
+    {
+      // 图层名: "FRONT_VIEW" (可见) + "FRONT_HIDDEN" (隐藏)
+      std::string aBase (aDef.Name);
+      std::transform (aBase.begin(), aBase.end(), aBase.begin(), ::toupper);
+      std::replace (aBase.begin(), aBase.end(), ' ', '_');
+      const std::string aViewSuffix = "_VIEW";
+      const std::string aRoot = aBase.substr (0, aBase.size() - aViewSuffix.size()); // FRONT
+      DL_Attributes aVisLayer (aBase,                       7, 0, "CONTINUOUS", 1.0);
+      DL_Attributes aHidLayer (aRoot + "_HIDDEN",          8, 0, "HIDDEN",     1.0);
+      aDxf.writeLayer (*aW, DL_LayerData (aBase,           0), aVisLayer);
+      aDxf.writeLayer (*aW, DL_LayerData (aRoot + "_HIDDEN", 0), aHidLayer);
+    }
+    aDxf.writeLayer (*aW, DL_LayerData ("LABEL", 0),
+                     DL_Attributes ("LABEL", 7, 0, "CONTINUOUS", 1.0));
+    aDxf.writeLayer (*aW, DL_LayerData ("DIM", 0),
+                     DL_Attributes ("DIM", 3, 0, "CONTINUOUS", 1.0));   // 标注层: 绿色
+    aDxf.writeLayer (*aW, DL_LayerData ("TITLE", 0),
+                     DL_Attributes ("TITLE", 4, 0, "CONTINUOUS", 1.0)); // 标题栏层: 青色
+    aW->tableEnd();
+
+    aW->tableStyle (1);
+    aDxf.writeStyle (*aW, DL_StyleData ("Standard", 0, 0.0, 1.0, 0.0, 0, 2.5, "", ""));
+    aW->tableEnd();
+    aDxf.writeView (*aW);  aW->tableEnd();
+    aDxf.writeUcs (*aW);   aW->tableEnd();
+    aW->tableAppid (1);
+    aDxf.writeAppid (*aW, "ACAD");
+    aW->tableEnd();
+    aDxf.writeDimStyle (*aW, 2.5, 0.625, 0.625, 0.0, 0.625);
+    aW->tableEnd();
+    aDxf.writeBlockRecord (*aW);
+    aW->tableEnd();
+    aW->sectionEnd();
+
+    // --- BLOCKS: R2000 需要模型/图纸空间块声明 ---
+    aW->sectionBlocks();
+    aDxf.writeBlock (*aW, DL_BlockData ("*Model_Space",  0, 0.0, 0.0, 0.0));
+    aDxf.writeEndBlock (*aW, "*Model_Space");
+    aDxf.writeBlock (*aW, DL_BlockData ("*Paper_Space", 0, 0.0, 0.0, 0.0));
+    aDxf.writeEndBlock (*aW, "*Paper_Space");
+    aW->sectionEnd();
+
+    // --- ENTITIES: 每视图 隐藏边→可见边→标签文字 ---
+    aW->sectionEntities();
+    for (size_t i = 0; i < theDefs.size(); ++i)
+    {
+      std::string aBase (theDefs[i].Name);
+      std::transform (aBase.begin(), aBase.end(), aBase.begin(), ::toupper);
+      std::replace (aBase.begin(), aBase.end(), ' ', '_');
+      const std::string aViewSuffix = "_VIEW";
+      const std::string aRoot = aBase.substr (0, aBase.size() - aViewSuffix.size()); // FRONT
+      dxfWriteShapeEdges (aDxf, *aW, aHidList[i], aRoot + "_HIDDEN", 8, "BYLAYER");
+      dxfWriteShapeEdges (aDxf, *aW, aVisList[i], aBase,             7, "BYLAYER");
+      aDxf.writeText (*aW,
+                      DL_TextData (theDefs[i].LabelPos.X(), theDefs[i].LabelPos.Y(), 0.0,
+                                   theDefs[i].LabelPos.X(), theDefs[i].LabelPos.Y(), 0.0,
+                                   15.0, 1.0, 0, 0, 0,
+                                   theDefs[i].Name, "Standard", 0.0),
+                      DL_Attributes ("LABEL", 7, 0, "CONTINUOUS", 1.0));
+    }
+    // --- 标注: 尺寸线 + 箭头 + 数值文字 (DIM 层) ---
+    for (const DxfDimSpec& aDim : theDims)
+    {
+      if (aDim.radial) { dxfWriteRadialDim (aDxf, *aW, aDim.x1, aDim.y1, aDim.x2, aDim.text); }
+      else             { dxfWriteLinearDim  (aDxf, *aW, aDim); }
+    }
+
+    // --- 描述信息表 (标题栏, TITLE 层): 图框 + 工程信息 ---
+    {
+      const DL_Attributes aTitleAttr ("TITLE", 4, 0, "CONTINUOUS", 1.0);
+      const double aX1 = -560.0, aY1 = 78.0, aX2 = -300.0, aY2 = 110.0;  // 图纸左上区域
+      aDxf.writeLine (*aW, DL_LineData (aX1, aY1, 0, aX2, aY1, 0), aTitleAttr);
+      aDxf.writeLine (*aW, DL_LineData (aX2, aY1, 0, aX2, aY2, 0), aTitleAttr);
+      aDxf.writeLine (*aW, DL_LineData (aX2, aY2, 0, aX1, aY2, 0), aTitleAttr);
+      aDxf.writeLine (*aW, DL_LineData (aX1, aY2, 0, aX1, aY1, 0), aTitleAttr);
+      aDxf.writeLine (*aW, DL_LineData (aX1, aY1 + 18.0, 0, aX2, aY1 + 18.0, 0), aTitleAttr); // 行分隔
+      aDxf.writeText (*aW,
+                      DL_TextData (aX1 + 4.0, aY2 - 6.0, 0.0, aX1 + 4.0, aY2 - 6.0, 0.0,
+                                   6.0, 1.0, 0, 0, 0,
+                                   "THREE-VIEW DRAWING (HLR) — BOX + CONE", "Standard", 0.0),
+                      aTitleAttr);
+      aDxf.writeText (*aW,
+                      DL_TextData (aX1 + 4.0, aY1 + 4.0, 0.0, aX1 + 4.0, aY1 + 4.0, 0.0,
+                                   5.0, 1.0, 0, 0, 0,
+                                   "UNIT: mm   SCALE 1:1   PROJECTION: FIRST-ANGLE", "Standard", 0.0),
+                      aTitleAttr);
+      aDxf.writeText (*aW,
+                      DL_TextData (aX1 + 160.0, aY1 + 4.0, 0.0, aX1 + 160.0, aY1 + 4.0, 0.0,
+                                   5.0, 1.0, 0, 0, 0,
+                                   "glfwocct / OCCT 7.9", "Standard", 0.0),
+                      aTitleAttr);
+    }
+    aW->sectionEnd();
+
+    aDxf.writeObjects (*aW);
+    aW->dxfEOF();
+    aW->close();
+    delete aW;
+    return true;
   }
 }
 
@@ -347,15 +639,8 @@ void GlfwOcctView::initDemoScene()
   gp_Trsf aMoveLeft;  aMoveLeft.SetTranslation  (gp_Vec (aLeftOff));
   gp_Trsf aMoveTop;   aMoveTop.SetTranslation   (gp_Vec (aTopOff));
 
-  struct HlrViewDef
-  {
-    const char* Name;     // 视图名称
-    gp_Dir      ViewDir;  // 观察方向(指向观察者, 即 gp_Ax2 的 Z)
-    gp_Dir      XDir;     // 投影平面横轴
-    gp_Trsf     Layout;   // 布局变换: 平移到图纸位置
-    gp_XYZ      LabelPos; // 视图名称标签位置
-  };
-  const HlrViewDef aViewDefs[] =
+  // 结构体 HlrViewDef 定义在文件头匿名命名空间 (DXF 导出函数也用它)
+  const std::vector<HlrViewDef> aViewDefs =
   {
     {"Front view", gp_Dir (0, -1, 0), gp_Dir (1, 0, 0), aMoveFront, gp_XYZ (-540, -30, 5)},
     {"Left view",  gp_Dir (-1, 0, 0), gp_Dir (0, -1, 0), aMoveLeft,  gp_XYZ (-375, -30, 5)},
@@ -408,6 +693,22 @@ void GlfwOcctView::initDemoScene()
   gp_Circ aBaseCirc (gp_Ax2 (gp_Pnt (25.0, 125.0, 0.0), gp_Dir (0.0, 0.0, 1.0)), 55.0);
   Handle(PrsDim_RadiusDimension) aRadDim = new PrsDim_RadiusDimension (aBaseCirc);
   myContext->Display (aRadDim, false);
+
+  // ===================== 导出三视图为 DXF CAD 文件 =====================
+  // 标注数据: 与上面 PrsDim 标注同一批数字, 在 DXF 里画成尺寸线+箭头+数值 (DIM 层)
+  std::vector<DxfDimSpec> aDxfDims;
+  aDxfDims.push_back ({false,   0.0 + aFrontOff.X(),   0.0 + aFrontOff.Y(),  50.0 + aFrontOff.X(),   0.0 + aFrontOff.Y(), -12.0, "50"});
+  aDxfDims.push_back ({false,  25.0 + aFrontOff.X(),   0.0 + aFrontOff.Y(),  25.0 + aFrontOff.X(),  70.0 + aFrontOff.Y(),  20.0, "70"});
+  aDxfDims.push_back ({false, -30.0 + aFrontOff.X(),   0.0 + aFrontOff.Y(),  80.0 + aFrontOff.X(),   0.0 + aFrontOff.Y(), -35.0, "110"});
+  aDxfDims.push_back ({false,   0.0 + aLeftOff.X(),    0.0 + aLeftOff.Y(),  -50.0 + aLeftOff.X(),    0.0 + aLeftOff.Y(), -12.0, "50"});
+  aDxfDims.push_back ({false, -125.0 + aLeftOff.X(),   0.0 + aLeftOff.Y(), -125.0 + aLeftOff.X(),  70.0 + aLeftOff.Y(),  20.0, "70"});
+  aDxfDims.push_back ({false,   0.0 + aTopOff.X(),     0.0 + aTopOff.Y(),   50.0 + aTopOff.X(),     0.0 + aTopOff.Y(), -12.0, "50"});
+  aDxfDims.push_back ({true,   25.0 + aTopOff.X(),   125.0 + aTopOff.Y(),   55.0,                    0.0,                    0.0, "R55"});
+  if (exportViewsToDxf ("three_views.dxf", aModel, aViewDefs, aDxfDims))
+  {
+    Message::DefaultMessenger()->Send (
+        TCollection_AsciiString ("DXF exported: three_views.dxf"), Message_Info);
+  }
 
   // ============ 工程 2D 视角: 正交投影 + 从 +Z 正对图纸, 只适配图纸区域 ============
   // (3D 模型仍在原点, 缩小/旋转即可看到; DRAW 的 vtop/vcortho 就是这两步)

@@ -1,0 +1,1214 @@
+{
+  "graphicsDatas": [
+    {
+      "id": 9,
+      "geometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "graphicsName": "NewCube",
+      "geometryName": "矩形体",
+      "origin": {
+        "x": 9.536743E-08,
+        "y": -0.99,
+        "z": 0.0,
+        "normalized": {
+          "x": 9.633074E-08,
+          "y": -1.0,
+          "z": 0.0,
+          "magnitude": 1.0,
+          "sqrMagnitude": 1.0
+        },
+        "magnitude": 0.99,
+        "sqrMagnitude": 0.980100036
+      },
+      "facingOrientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "handOrientation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisX": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisY": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisZ": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "parameters": {
+        "L": 6.0,
+        "h": 0.5,
+        "d": 6.0
+      },
+      "formulaTexts": null,
+      "parameterDisplayUnits": null,
+      "parameterNameCs": null,
+      "isLaunder3D": false,
+      "isGlbWrapper": false,
+      "isProductionGeometry": false,
+      "productionJson": null,
+      "launderHostGeometryUuid": null,
+      "launderHostGeometryId": 0,
+      "launderBoundVertexId": 0,
+      "launderBoundFaceId": 0,
+      "launderPortType": 0,
+      "IsMirrored": false
+    },
+    {
+      "id": 10,
+      "geometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+      "graphicsName": "NewCube",
+      "geometryName": "矩形体",
+      "origin": {
+        "x": 9.536743E-08,
+        "y": -1.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "facingOrientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "handOrientation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisX": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisY": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisZ": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "parameters": {
+        "L": 6.0,
+        "h": 0.01,
+        "d": 6.0
+      },
+      "formulaTexts": null,
+      "parameterDisplayUnits": null,
+      "parameterNameCs": null,
+      "isLaunder3D": false,
+      "isGlbWrapper": false,
+      "isProductionGeometry": false,
+      "productionJson": null,
+      "launderHostGeometryUuid": null,
+      "launderHostGeometryId": 0,
+      "launderBoundVertexId": 0,
+      "launderBoundFaceId": 0,
+      "launderPortType": 0,
+      "IsMirrored": false
+    },
+    {
+      "id": 11,
+      "geometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+      "graphicsName": "NewCube",
+      "geometryName": "矩形体",
+      "origin": {
+        "x": 5.4,
+        "y": -0.49,
+        "z": 0.0,
+        "normalized": {
+          "x": 0.9959083,
+          "y": -0.09036946,
+          "z": 0.0,
+          "magnitude": 1.0,
+          "sqrMagnitude": 1.0
+        },
+        "magnitude": 5.422186,
+        "sqrMagnitude": 29.4001
+      },
+      "facingOrientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "handOrientation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisX": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisY": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "axisZ": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "parameters": {
+        "L": 0.6,
+        "h": 0.6,
+        "d": 6.0
+      },
+      "formulaTexts": null,
+      "parameterDisplayUnits": null,
+      "parameterNameCs": null,
+      "isLaunder3D": false,
+      "isGlbWrapper": false,
+      "isProductionGeometry": false,
+      "productionJson": null,
+      "launderHostGeometryUuid": null,
+      "launderHostGeometryId": 0,
+      "launderBoundVertexId": 0,
+      "launderBoundFaceId": 0,
+      "launderPortType": 0,
+      "IsMirrored": false
+    }
+  ],
+  "bindDatas": [
+    {
+      "bindId": 0,
+      "bindType": 0,
+      "sourceGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+      "sourceFeatureId": 25,
+      "targetGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "targetFeatureId": 33
+    },
+    {
+      "bindId": 0,
+      "bindType": 0,
+      "sourceGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+      "sourceFeatureId": 67,
+      "targetGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "targetFeatureId": 59
+    }
+  ],
+  "groupDatas": [],
+  "arrayGroupDatas": [],
+  "componentDatas": [
+    {
+      "description": null,
+      "materialGroupId": null,
+      "buildingInfoBindings": [
+        {
+          "buildInfoICode": "37b603d538a44a50865f2796193c6f36",
+          "parameterId": null,
+          "parameterType": null,
+          "parameterName": null,
+          "parameterNameC": null,
+          "parameterValue": null
+        }
+      ],
+      "buildInfoAssignmentICode": "37b603d538a44a50865f2796193c6f36",
+      "metadata": {
+        "ProjectionAreaParameter": "投影面积:NaN",
+        "VolumeParameter": "体积:NaN",
+        "SourceGroupUuid": "006d5bc6-1c46-4a11-acb1-227112248c06"
+      },
+      "groupUuid": "ad563644-43c1-4743-9037-e436c9ccd2c2",
+      "groupName": "消力池底板",
+      "groupType": "Component",
+      "parentGroupUuid": null,
+      "childGeometryUuids": [
+        "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c"
+      ],
+      "childGroupUuids": []
+    },
+    {
+      "description": null,
+      "materialGroupId": null,
+      "buildingInfoBindings": [
+        {
+          "buildInfoICode": "37b603d538a44a50865f2796193c6f36",
+          "parameterId": null,
+          "parameterType": null,
+          "parameterName": null,
+          "parameterNameC": null,
+          "parameterValue": null
+        }
+      ],
+      "buildInfoAssignmentICode": "37b603d538a44a50865f2796193c6f36",
+      "metadata": {
+        "ProjectionAreaParameter": "投影面积:NaN",
+        "VolumeParameter": "体积:NaN",
+        "SourceGroupUuid": "e100df75-8d4c-4b34-adf6-320aad3fc386"
+      },
+      "groupUuid": "a6c5e98f-bc2a-496e-b8ed-ecd4bafc9ddb",
+      "groupName": "消力坎",
+      "groupType": "Component",
+      "parentGroupUuid": null,
+      "childGeometryUuids": [
+        "23c42944-e5f3-4b0e-b3f6-16a188c2baff"
+      ],
+      "childGroupUuids": []
+    },
+    {
+      "description": null,
+      "materialGroupId": null,
+      "buildingInfoBindings": [
+        {
+          "buildInfoICode": "4aa56f48b3554a5c802a63db4fd5184b",
+          "parameterId": null,
+          "parameterType": null,
+          "parameterName": null,
+          "parameterNameC": null,
+          "parameterValue": null
+        }
+      ],
+      "buildInfoAssignmentICode": "4aa56f48b3554a5c802a63db4fd5184b",
+      "metadata": {
+        "ProjectionAreaParameter": "投影面积:NaN",
+        "VolumeParameter": "体积:NaN",
+        "SourceGroupUuid": "4794a533-0153-404e-9a4c-c108b3d2cbf4"
+      },
+      "groupUuid": "96e2c33e-8aad-4b88-b296-fd15fc75698a",
+      "groupName": "聚酯长纤无纺布反滤",
+      "groupType": "Component",
+      "parentGroupUuid": null,
+      "childGeometryUuids": [
+        "44f579dd-9039-4441-997f-4945a0f3872b"
+      ],
+      "childGroupUuids": []
+    }
+  ],
+  "measureDatas": [],
+  "globalParameterDatas": [
+    {
+      "parameterName": "l",
+      "nameChinese": "消力池长",
+      "parameterValue": 6.0,
+      "parameterId": 29,
+      "parameterType": "GlobalParameter",
+      "showInModel": true,
+      "isLaunderParameter": false,
+      "componentUuid": null,
+      "displayUnit": "m"
+    },
+    {
+      "parameterName": "w",
+      "nameChinese": "消力池宽",
+      "parameterValue": 6.0,
+      "parameterId": 30,
+      "parameterType": "GlobalParameter",
+      "showInModel": true,
+      "isLaunderParameter": false,
+      "componentUuid": null,
+      "displayUnit": "m"
+    },
+    {
+      "parameterName": "d",
+      "nameChinese": "底板厚",
+      "parameterValue": 0.5,
+      "parameterId": 31,
+      "parameterType": "GlobalParameter",
+      "showInModel": true,
+      "isLaunderParameter": false,
+      "componentUuid": "ad563644-43c1-4743-9037-e436c9ccd2c2",
+      "displayUnit": "m"
+    },
+    {
+      "parameterName": "h",
+      "nameChinese": "消力坎高",
+      "parameterValue": 0.6,
+      "parameterId": 32,
+      "parameterType": "GlobalParameter",
+      "showInModel": true,
+      "isLaunderParameter": false,
+      "componentUuid": "a6c5e98f-bc2a-496e-b8ed-ecd4bafc9ddb",
+      "displayUnit": "m"
+    },
+    {
+      "parameterName": "b",
+      "nameChinese": "消力坎宽",
+      "parameterValue": 0.6,
+      "parameterId": 33,
+      "parameterType": "GlobalParameter",
+      "showInModel": true,
+      "isLaunderParameter": false,
+      "componentUuid": "a6c5e98f-bc2a-496e-b8ed-ecd4bafc9ddb",
+      "displayUnit": "m"
+    }
+  ],
+  "secondaryGlobalParameterDatas": [],
+  "formulaDatas": [
+    {
+      "geometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "parameterName": "L",
+      "formulaText": "l",
+      "currentValue": 6.0
+    },
+    {
+      "geometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "parameterName": "h",
+      "formulaText": "d",
+      "currentValue": 0.5
+    },
+    {
+      "geometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "parameterName": "d",
+      "formulaText": "w",
+      "currentValue": 6.0
+    },
+    {
+      "geometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+      "parameterName": "L",
+      "formulaText": "l",
+      "currentValue": 6.0
+    },
+    {
+      "geometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+      "parameterName": "d",
+      "formulaText": "w",
+      "currentValue": 6.0
+    },
+    {
+      "geometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+      "parameterName": "L",
+      "formulaText": "b",
+      "currentValue": 0.6
+    },
+    {
+      "geometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+      "parameterName": "h",
+      "formulaText": "h",
+      "currentValue": 0.6
+    },
+    {
+      "geometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+      "parameterName": "d",
+      "formulaText": "w",
+      "currentValue": 6.0
+    }
+  ],
+  "geometryMeshDatas": [],
+  "surfaceArrayBooleanDatas": [],
+  "surfaceArrayDatas": [],
+  "arrayGroupCustomGeometryDatas": [],
+  "buildInfoInformations": [
+    {
+      "unit": "m³",
+      "description": "",
+      "iCode": "37b603d538a44a50865f2796193c6f36",
+      "name": "生态格网石笼--护坡",
+      "type": "6c715a611ba34b128bf3fe939a62935d",
+      "typeC": "其它",
+      "texture": {
+        "iCode": "2c8dda4dba3246dbb758c5d9399afe9f",
+        "name": "网箱石笼",
+        "category": "MATERIAL",
+        "categoryC": "材质",
+        "parentTypeICode": "4f59ecc71f1b450eb9acfd4cbf5e25c8",
+        "parentTypeName": "石材",
+        "typeICode": "3c2e75d16e1b4f8fb17e82847de9bacb",
+        "typeName": "铸石",
+        "thumbUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/6bdb8e02bd764230bd1f1515ad400445.jpg",
+        "uploadStatus": "UPLOADED",
+        "uploadStatusC": "已上传",
+        "textureLibraryName": "网箱石笼",
+        "textureLibraryICode": "af3e0e82ab734120bcd3998dd61e63db",
+        "textureLibraryImages": [
+          {
+            "iCode": "b169c89af9b24e308cabb23c4cc9c9cd",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/b169c89af9b24e308cabb23c4cc9c9cd.jpg",
+            "name": "网箱石笼_diffuse.jpg",
+            "imageMark": "diffuse"
+          },
+          {
+            "iCode": "f00212143036468b851ef71d4e00f305",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/f00212143036468b851ef71d4e00f305.jpg",
+            "name": "网箱石笼_normal.jpg",
+            "imageMark": "normal"
+          }
+        ],
+        "attributes": [
+          {
+            "iCode": "4336fb781bf44437939f25d094fedb8c",
+            "name": "透明度",
+            "value": false
+          },
+          {
+            "iCode": "a2bc0ef2c3124c65b1c0876ab1748c58",
+            "name": "UV贴图",
+            "value": false
+          }
+        ],
+        "pat": ""
+      }
+    },
+    {
+      "unit": "m²",
+      "description": "土石坝、围堰的反滤层",
+      "iCode": "4aa56f48b3554a5c802a63db4fd5184b",
+      "name": "土工布铺设--平铺",
+      "type": "75ae67ece0a345d99d0fe63addf71867",
+      "typeC": "土方工程",
+      "texture": {
+        "iCode": "ec937bc023ad45a08eb6b31503834642",
+        "name": "土工膜",
+        "category": "MATERIAL",
+        "categoryC": "材质",
+        "parentTypeICode": "1620b7cf58b04a4289f93f6c8fa90cae",
+        "parentTypeName": "合成树脂及化学灌浆材料",
+        "typeICode": "2ba2f4d6079f40beb75b2d8fdbeb86b8",
+        "typeName": "合成树脂",
+        "thumbUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/e1fba0a277d3404dbfbb771e958c73e9.jpg",
+        "uploadStatus": "UPLOADED",
+        "uploadStatusC": "已上传",
+        "textureLibraryName": "灰色防水布_41_62_4K",
+        "textureLibraryICode": "97db35062b334df095d47bc358ff007a",
+        "textureLibraryImages": [
+          {
+            "iCode": "4b9f27ff4bf04e809168a442a08e29a5",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/4b9f27ff4bf04e809168a442a08e29a5.jpg",
+            "name": "grey_tarp_41_62_ao.jpg",
+            "imageMark": "ao"
+          },
+          {
+            "iCode": "861fcc26e6844a0f85251d77d3dfd8ec",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/861fcc26e6844a0f85251d77d3dfd8ec.jpg",
+            "name": "grey_tarp_41_62_diffuse.jpg",
+            "imageMark": "diffuse"
+          },
+          {
+            "iCode": "0c88308554fc499989ebfb2ffaa83706",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/0c88308554fc499989ebfb2ffaa83706.jpg",
+            "name": "grey_tarp_41_62_glossiness.jpg",
+            "imageMark": "glossiness"
+          },
+          {
+            "iCode": "4fd679518c10488488637a184f3a3651",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/4fd679518c10488488637a184f3a3651.jpg",
+            "name": "grey_tarp_41_62_height.jpg",
+            "imageMark": "height"
+          },
+          {
+            "iCode": "33484da9f5044f35ae95afbc018e2864",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/33484da9f5044f35ae95afbc018e2864.jpg",
+            "name": "grey_tarp_41_62_metallic.jpg",
+            "imageMark": "metallic"
+          },
+          {
+            "iCode": "c72cb4f986444c098593c1b8aa64df69",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/c72cb4f986444c098593c1b8aa64df69.jpg",
+            "name": "grey_tarp_41_62_normal.jpg",
+            "imageMark": "normal"
+          },
+          {
+            "iCode": "a1d5391a5525491c9d8b46edc8946c76",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/a1d5391a5525491c9d8b46edc8946c76.jpg",
+            "name": "grey_tarp_41_62_reflection.jpg",
+            "imageMark": "reflection"
+          },
+          {
+            "iCode": "0183d66fcb7a4640a2cbf0ebcdcd9d24",
+            "imageUrl": "https://panorama.qingqingshuili.com/v1/AUTH_QuObjects/public/qqsl-resource-library/qqsl/texture/0183d66fcb7a4640a2cbf0ebcdcd9d24.jpg",
+            "name": "grey_tarp_41_62_roughness.jpg",
+            "imageMark": "roughness"
+          }
+        ],
+        "attributes": [
+          {
+            "iCode": "4336fb781bf44437939f25d094fedb8c",
+            "name": "透明度",
+            "value": false
+          },
+          {
+            "iCode": "a2bc0ef2c3124c65b1c0876ab1748c58",
+            "name": "UV贴图",
+            "value": false
+          }
+        ],
+        "pat": ""
+      }
+    }
+  ],
+  "chamferDatas": [],
+  "booleanGroupDatas": [],
+  "booleanOperationDatas": [],
+  "modelAxisData": {
+    "directionGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+    "positionGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+    "lockPoint": {
+      "selectableType": "Vertex",
+      "geometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+      "localId": 67,
+      "position": {
+        "x": 9.536743E-08,
+        "y": -0.49,
+        "z": 3.0,
+        "normalized": {
+          "x": 3.13734141E-08,
+          "y": -0.1611973,
+          "z": 0.9869222,
+          "magnitude": 1.0,
+          "sqrMagnitude": 1.0
+        },
+        "magnitude": 3.0397532,
+        "sqrMagnitude": 9.2401
+      }
+    },
+    "syncFromUGeometry": true,
+    "origin": {
+      "x": 9.536743E-08,
+      "y": -0.49,
+      "z": 3.0,
+      "normalized": {
+        "x": 3.13734141E-08,
+        "y": -0.1611973,
+        "z": 0.9869222,
+        "magnitude": 1.0,
+        "sqrMagnitude": 1.0
+      },
+      "magnitude": 3.0397532,
+      "sqrMagnitude": 9.2401
+    },
+    "axisX": {
+      "x": 1.0,
+      "y": 0.0,
+      "z": 0.0,
+      "magnitude": 1.0,
+      "sqrMagnitude": 1.0
+    },
+    "axisY": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 1.0,
+      "magnitude": 1.0,
+      "sqrMagnitude": 1.0
+    },
+    "axisZ": {
+      "x": 0.0,
+      "y": 1.0,
+      "z": 0.0,
+      "magnitude": 1.0,
+      "sqrMagnitude": 1.0
+    },
+    "geometryListUuids": []
+  },
+  "componentAxisData": null,
+  "featureElevationDatas": [],
+  "featureWaterLevelDatas": [],
+  "connectorDatas": [],
+  "connector2DDatas": null,
+  "cadEntityDatas": [],
+  "dimensionMoveEntityDatas": [
+    {
+      "viewType": 0,
+      "dimensionMoveInfos": [
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        }
+      ]
+    },
+    {
+      "viewType": 2,
+      "dimensionMoveInfos": [
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        }
+      ]
+    },
+    {
+      "viewType": 1,
+      "dimensionMoveInfos": [
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        }
+      ]
+    },
+    {
+      "viewType": 3,
+      "dimensionMoveInfos": [
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "00cacf16-34e5-4c63-b1e5-4ebd8f88ad2c",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "44f579dd-9039-4441-997f-4945a0f3872b",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "L",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "h",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        },
+        {
+          "measureUuid": "",
+          "uGeometryUuid": "23c42944-e5f3-4b0e-b3f6-16a188c2baff",
+          "parameterName": "d",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "isHide": false,
+          "measureType": null,
+          "extendedId": null
+        }
+      ]
+    }
+  ],
+  "ModelName": "格宾笼组合消力池",
+  "ModelICode": null,
+  "ModelRemark": "本模型为格宾笼组合消力池参数化设计单元，适用于农村中小型河道治理、溢流坝下游消能、水闸消力池、山区溪沟跌水消能、水土保持谷坊群及生态水利工程。结构采用格宾网箱（绿滨笼）堆叠组合形成消力池底板、尾坎及侧墙，内部填充块石或卵石，利用格宾笼的柔性及透水性，降低底板扬压力、适应不均匀沉降、生态兼容性好、施工简便且造价低廉。主要参数包括：消力池净宽B（与上游溢流坝或水闸宽度一致，常用3~20m）、消力池长度L_k（常用4~15m，按水跃长度确定）、消力池深度d（常用0.3~1.2m）、消力池底板格宾笼厚度t_b（常用0.3~1.0m，采用单层或双层格宾笼）、尾坎高度c（常用0.3~0.8m，可采用格宾笼或浆砌石结构）、尾坎顶宽b_c（常用0.5~1.0m）、消力池侧墙高度H_w（高出下游最高水位0.3~0.5m，采用格宾笼或格宾笼+土工布组合）、格宾笼规格（长×宽×高，常用2×1×1m、2×1×0.5m、1×1×1m、2×1×0.3m（底板用））、网孔尺寸（常用60×80mm、80×100mm、100×120mm）、钢丝直径（网面≥2.2mm，边丝≥2.7mm，覆塑时涂层厚度0.4~0.6mm）、填充石料粒径（1.5~2.5倍网孔尺寸，常用100~200mm，底板下层可用小粒径80~120mm）、石料强度（≥MU30）、下游水位及单宽流量q（常用2~15m³/s·m）、上下游水位差ΔH（常用1~5m）。材料采用镀锌钢丝（锌层≥250g/m²）或覆塑钢丝（PVC/PE涂层）的格宾网（网面抗拉强度≥35kN/m），填充料为级配良好的块石或卵石（抗压强度≥30MPa，级配连续，充填密实），消力池底板下铺设土工布（≥300g/m²）及碎石垫层（厚度150~300mm）起反滤作用，尾坎后接干砌石海漫（长度5~15m）及防冲槽（深度0.5~1.0m）。工艺选项包括消力池结构形式（全格宾笼消力池（底板、尾坎、侧墙全采用格宾笼，适用于低水头、小流量）、格宾笼底板+浆砌石尾坎（尾坎抗冲能力增强，适用于中等流量）、格宾笼与混凝土组合（溢流面或尾坎顶面设混凝土预制块或现浇混凝土面层，提高抗冲耐磨能力，适用于q≥6m³/s·m）、格宾笼阶梯式消力池（消力池底板呈台阶状（台阶高度0.3~0.5m），增加消能率10%~20%）），格宾笼底板铺设（单层格宾笼（厚度0.3~0.5m，适用于低水头、q≤5m³/s·m）、双层格宾笼（下层0.5m+上层0.3~0.5m，上下层错缝堆叠，适用于中等水头、抗浮要求高）），格宾笼尾坎设置（格宾笼堆叠成梯形或矩形尾坎（高度0.5~1.0m，顶宽0.5~1.0m，背坡1:0.5~1:1），尾坎顶面可设混凝土预制块（厚度0.1~0.15m）或雷诺护垫抗冲，防止水流越顶冲刷），侧墙结构（格宾笼堆叠侧墙（高度0.5~2.0m，顶宽0.5~1.0m，墙背设土工布及碎石反滤层），墙顶可兼作人行通道或生态绿化），底板排水与反滤（底板下设土工布及碎石垫层（厚度150~300mm），格宾笼底板内可设排水管（Φ50~80mm PVC，间距2~3m）连通垫层，有效降低扬压力，防止底板掀起），格宾笼组装与填充（网箱组装绑扎（间距100~200mm），石料分层填充（每层0.3~0.5m，大块石位于外表面，填充密实度≥85%），盖板闭合绑扎，相邻网箱连接成整体），消力池与上游建筑物连接（消力池底板与上游溢流坝或水闸消力坎之间设格宾笼过渡段（长度1~2m），连接处设齿坎（深0.3~0.5m）或锚筋，防止水流淘刷），消力池与下游连接（尾坎后接干砌石海漫（长度5~15m，厚度0.3~0.5m），海漫末端设防冲槽（深0.5~1.0m，抛填大块石粒径300~500mm）或铅丝石笼，适应下游河床变形），生态措施（格宾笼消力池表面可自然生长植被，池内可设鱼巢砖或生态孔洞，兼作鱼类栖息空间），沉降缝（消力池长度≥15m时每10~15m设一道沉降缝（缝宽20~30mm，填塞土工布或沥青麻丝），格宾笼柔性结构可不设或减少沉降缝）。模型自动完成水力计算（水跃计算（收缩断面水深h_c、跃后水深h_c\"、水跃长度L_j，消力池长度L_k=0.7~0.8L_j，深度d=σ₀·h_c\"-h_t，σ₀取1.05~1.10），格宾笼糙率对水跃的影响（糙率n=0.025~0.035，较混凝土消力池增加10%~20%，可缩短水跃长度5%~10%），底板抗浮验算（扬压力P_u=γ_w·(ΔH+ h_c+ t_b)，透水底板扬压力折减系数α=0.4~0.6（设排水及反滤层），抗浮安全系数K_f=(W+G)/P_u≥1.1~1.2），下游冲刷深度验算（h_s=1.1q√ΔH/(v_0·d^0.25)-h_t，格宾笼消力池可减少冲刷深度20%~30%）），结构复核（格宾笼底板厚度验算（按抗浮及抗冲确定t_b=0.3~1.0m，满足最小构造要求，高流速区t_b≥0.5m），尾坎稳定验算（抗滑移安全系数≥1.3、抗倾覆安全系数≥1.4，格宾笼尾坎与底板连接绑扎牢固），侧墙稳定验算（重力式挡墙模型，抗滑≥1.3，抗倾≥1.4，墙后土压力及水压力作用），格宾笼强度验算（网面抗拉≥35kN/m，填充石料压力下网面应力≤材料强度50%，绑扎丝抗拔≥1.5kN/点），地基承载力验算（基底应力≤地基承载力特征值，软弱地基换填砂砾石0.5~1.0m），整体稳定性（消力池与上下游连接处防淘刷，设齿坎或锚筋）），输出工程量包括格宾网箱面积与数量（分底板、尾坎、侧墙不同规格）、填充石料体积（按格宾笼容积×1.05超填系数）、土工布面积（底板及侧墙后铺设，搭接系数1.10~1.15）、碎石垫层体积、干砌石海漫方量、防冲槽大块石体积、混凝土预制块面积（如设置）、铅丝石笼体积（如设置）、排水管长度、绑扎丝及扣件数量等，支持与造价定额库联动自动套用人工、材料、机械费进行组价。适用范围：消力池净宽3~20m，长度4~15m，深度0.3~1.2m，单宽流量2~15m³/s·m，上下游水位差1~5m，设计流量10~100m³/s，格宾笼底板厚度0.3~1.0m，尾坎高度0.3~0.8m，填充石料粒径100~200mm，适用于农村河道溢流坝下游消力池、水闸消力池、山区溪沟跌水消能、水土保持谷坊群消力池、生态水利工程消能设施、低水头水利枢纽消力池改造及“以奖代补”农村水利项目（经济性优先、生态兼容、可就地取材）等工程场景。可导出CAD断面图（消力池纵剖及横剖、格宾笼底板及尾坎堆叠详图、侧墙结构图、排水反滤层布置图）、平面布置图（消力池与上下游衔接、海漫及防冲槽）、连接构造详图（与溢流坝/水闸连接、尾坎与海漫连接）、施工详图（基坑开挖线、土工布铺设、格宾笼组装顺序）及完整计算书（含水力学计算（水跃、消力池深度长度）、抗浮稳定分析、结构复核、网箱强度校核、工程量统计、与混凝土消力池经济性对比分析（格宾笼消力池可节省造价20%~35%，缩短工期30%~50%））。",
+  "ModelUuid": "8936a827-1359-4f2d-9eae-919179f91441",
+  "ModelVersion": 1,
+  "ModelTypeName": "底流式消能",
+  "ModelTypeICode": "a563f2c6-d38d-4e72-a9b6-b34743b1b6aa",
+  "LastModifiedTime": "2026-09-06T20:01:15.159Z",
+  "IsPublished": false,
+  "idCreatorId": 34
+}

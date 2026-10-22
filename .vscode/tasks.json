@@ -16,6 +16,14 @@
       "args": ["--build", "${workspaceFolder}/build-debug", "--target", "glfwocct"],
       "group": "build",
       "problemMatcher": []
+    },
+    {
+      "label": "构建 ocaf_viewer",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build-debug", "--target", "ocaf_viewer"],
+      "group": "build",
+      "problemMatcher": []
     }
   ]
 }

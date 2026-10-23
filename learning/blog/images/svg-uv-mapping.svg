@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 330" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+    <linearGradient id="cyl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d6e4f0"/><stop offset="0.5" stop-color="#f5f9fd"/><stop offset="1" stop-color="#d6e4f0"/>
+    </linearGradient>
+  </defs>
+
+  <text x="440" y="28" text-anchor="middle" font-size="19" font-weight="bold" fill="#2c3e50">2D 参数空间 (U,V) → 圆柱面求值 → 3D 螺旋线</text>
+
+  <!-- 左: 参数平面 (圆柱展开面) -->
+  <g transform="translate(50,60)">
+    <rect x="0" y="0" width="250" height="190" fill="#fdf6ec" stroke="#d4a017" stroke-width="1.5"/>
+    <path d="M 20 150 Q 125 20 230 120" fill="none" stroke="#2980b9" stroke-width="3"/>
+    <path d="M 20 150 Q 125 90 230 120" fill="none" stroke="#e67e22" stroke-width="3" stroke-dasharray="6,4"/>
+    <circle cx="125" cy="95" r="4" fill="#c0392b"/>
+    <text x="125" y="82" text-anchor="middle" font-size="13" fill="#c0392b">中心 (2π, h/2)</text>
+    <text x="40" y="172" font-size="13" fill="#2980b9">anArc (半椭圆)</text>
+    <text x="135" y="118" font-size="13" fill="#e67e22">aSegment (连线)</text>
+    <text x="215" y="187" font-size="13" fill="#7f8c8d">U →</text>
+    <text x="6" y="16" font-size="13" fill="#7f8c8d">↑ V</text>
+    <text x="125" y="215" text-anchor="middle" font-size="14" fill="#2c3e50" font-weight="bold">圆柱的参数空间</text>
+    <text x="125" y="234" text-anchor="middle" font-size="12.5" fill="#555">椭圆斜置于 (U,V) 平面，U 方向横跨 ≈ 4π（两圈）</text>
+  </g>
+
+  <!-- 中: 公式箭头 -->
+  <g transform="translate(322,140)">
+    <line x1="0" y1="25" x2="150" y2="25" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr)"/>
+    <text x="75" y="4" text-anchor="middle" font-size="13" fill="#2c3e50" font-style="italic">P(U,V) = O + R·(cosU·x + sinU·y) + V·z</text>
+    <text x="75" y="52" text-anchor="middle" font-size="12.5" fill="#7f8c8d">MakeEdge(2D曲线, 圆柱面)</text>
+    <text x="75" y="70" text-anchor="middle" font-size="12.5" fill="#7f8c8d">+ BRepLib::BuildCurves3d()</text>
+  </g>
+
+  <!-- 右: 圆柱面上的螺旋线 (正视) -->
+  <g transform="translate(540,50)">
+    <rect x="30" y="20" width="180" height="180" fill="url(#cyl)" stroke="#5d6d7e" stroke-width="1.5"/>
+    <ellipse cx="120" cy="20" rx="90" ry="18" fill="#eaf2f9" stroke="#5d6d7e" stroke-width="1.5"/>
+    <ellipse cx="120" cy="200" rx="90" ry="18" fill="#d6e4f0" stroke="#5d6d7e" stroke-width="1.5"/>
+    <!-- 螺旋线正视 = 正弦曲线, 两个周期 = 绕两圈 -->
+    <path d="M 30 72 C 45 48, 60 48, 75 72 C 90 96, 105 96, 120 72 C 135 48, 150 48, 165 72 C 180 96, 195 96, 210 72"
+          fill="none" stroke="#2980b9" stroke-width="2.5"/>
+    <path d="M 30 54 C 45 32, 60 32, 75 54 C 90 76, 105 76, 120 54 C 135 32, 150 32, 165 54 C 180 76, 195 76, 210 54"
+          fill="none" stroke="#27ae60" stroke-width="2" stroke-dasharray="5,4"/>
+    <text x="216" y="60" font-size="12.5" fill="#27ae60">R = 1.05×瓶颈</text>
+    <text x="216" y="80" font-size="12.5" fill="#2980b9">R = 0.99×瓶颈</text>
+    <text x="120" y="248" text-anchor="middle" font-size="14" fill="#2c3e50" font-weight="bold">圆柱面上的 3D 螺旋线框</text>
+    <text x="120" y="268" text-anchor="middle" font-size="12.5" fill="#555">正弦状曲线 × 2 个周期 = 绕圆柱两圈</text>
+  </g>
+</svg>

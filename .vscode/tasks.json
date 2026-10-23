@@ -2,6 +2,14 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "构建 ais_object_tutorial",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build-debug", "--target", "ais_object_tutorial"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
       "label": "构建 bottle_tutorial",
       "type": "shell",
       "command": "cmake",

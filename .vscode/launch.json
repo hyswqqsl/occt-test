@@ -2,6 +2,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "调试 ais_object_tutorial (AIS自定义交互对象)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build-debug/learning/ais_object_tutorial/ais_object_tutorial",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "构建 ais_object_tutorial"
+    },
+    {
       "name": "调试 bottle_tutorial",
       "type": "lldb",
       "request": "launch",
@@ -36,6 +45,15 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "构建 ocaf_viewer"
-    }
+    },
+    {
+      "name": "调试 occt_object",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build-debug/learning/occt_object",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "构建 occt_object"
+    }    
   ]
 }

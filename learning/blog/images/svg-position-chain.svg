@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+    <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#27ae60"/>
+    </marker>
+  </defs>
+
+  <text x="440" y="28" text-anchor="middle" font-size="19" font-weight="bold" fill="#2c3e50">螺纹为什么天生就在瓶口？—— 定位全部继承自同一个 neckAx2</text>
+
+  <!-- 源头 -->
+  <rect x="40" y="55" width="330" height="64" rx="8" fill="#fdebd0" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="205" y="80" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#2c3e50">sec3.3  neckAx2 = gp_Ax2( (0,0,70), DZ )</text>
+  <text x="205" y="102" text-anchor="middle" font-size="12.5" fill="#555">瓶颈坐标系：原点 = 瓶身顶面中心，Z = 全局 Z 轴</text>
+
+  <!-- 三个继承者 -->
+  <g font-size="13">
+    <rect x="40" y="165" width="250" height="58" rx="8" fill="#eaf2f9" stroke="#2980b9" stroke-width="1.5"/>
+    <text x="165" y="188" text-anchor="middle" font-weight="bold" fill="#2c3e50">瓶颈圆柱</text>
+    <text x="165" y="209" text-anchor="middle" fill="#555">R=7.5, H=7 → 外壁 Z∈[70,77]</text>
+
+    <rect x="315" y="165" width="250" height="58" rx="8" fill="#eaf2f9" stroke="#2980b9" stroke-width="1.5"/>
+    <text x="440" y="188" text-anchor="middle" font-weight="bold" fill="#2c3e50">aCyl1 (参数面)</text>
+    <text x="440" y="209" text-anchor="middle" fill="#555">R=7.425 (=0.99R)，V=0 平面在 Z=70</text>
+
+    <rect x="590" y="165" width="250" height="58" rx="8" fill="#eaf2f9" stroke="#2980b9" stroke-width="1.5"/>
+    <text x="715" y="188" text-anchor="middle" font-weight="bold" fill="#2c3e50">aCyl2 (参数面)</text>
+    <text x="715" y="209" text-anchor="middle" fill="#555">R=7.875 (=1.05R)，V=0 平面在 Z=70</text>
+  </g>
+
+  <line x1="140" y1="119" x2="150" y2="163" stroke="#c0392b" stroke-width="2" marker-end="url(#arr2)"/>
+  <line x1="240" y1="119" x2="420" y2="163" stroke="#c0392b" stroke-width="2" marker-end="url(#arr2)"/>
+  <line x1="320" y1="100" x2="700" y2="163" stroke="#c0392b" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <!-- 结果 -->
+  <rect x="40" y="262" width="800" height="76" rx="8" fill="#eafaf1" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="440" y="288" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1e8449">(U,V) 曲线 V∈[2.8, 4.2] → 螺纹实体 Z∈[72.8, 74.2]，与瓶颈同轴</text>
+  <text x="440" y="312" text-anchor="middle" font-size="12.5" fill="#555">内壁 7.425 嵌入瓶颈壁 0.075mm（消除缝隙），外壁 7.875 凸出 0.375mm（露牙）—— Compound 组装时无需任何变换</text>
+
+  <line x1="440" y1="223" x2="440" y2="260" stroke="#27ae60" stroke-width="2" marker-end="url(#arr3)"/>
+</svg>
